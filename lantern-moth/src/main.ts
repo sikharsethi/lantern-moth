@@ -68,13 +68,14 @@ function dash(){if(state!='play'||g.dc>0)return;g.dash=.25;g.dc=4-S.up[2]*.6;bur
 function toggle(){if(state=='play'){state='pause';show('pause')}else if(state=='pause'){state='play';show(null)}}
 function ach(k){if(S.ach.includes(k))return;S.ach.push(k);S.dust+=25;save();toast('Achievement: '+AC_[k]+' (+25 dust)');sfx(880,.4,'triangle')}
 function burst(px,py,c,n){n=S.calm?Math.ceil(n/3):n;for(let i=0;i<n;i++){const a=R()*6.28,s=40+R()*140;g.p.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.6,c})}}
-function end(cause){
+function end(cause:string,by=''){
  state='over';g.cause=cause;navigator.vibrate&&navigator.vibrate(120);if(!S.calm)g.shake=.4;sfx(120,.5,'sawtooth',.1);
  const d0=Math.floor(g.sc/25)+g.got;let gd=0;goals().forEach(i=>{if(!S.dg.done.includes(i)&&GP[i][1](g)){S.dg.done.push(i);gd+=30}});const d=d0+gd;S.dust+=d;const nb=g.sc>(g.daily?S.dbest:S.best);
  if(g.daily)S.dbest=Math.max(S.dbest,g.sc);else S.best=Math.max(S.best,g.sc);S.runs++;const nu:string[]=[];ST.forEach((t,i)=>{if(t[2](S)&&!S.seen.includes(i)){S.seen.push(i);nu.push(t[0])}});S.dust+=nu.length*10;save();
- const tip=cause=='hit'?'Bats fly in waves: slip behind them. Grab a 🛡 when you see one.':'Light drains faster over time: chase orbs early and keep your combo.';
+ const tips:any={'a bat':'Bats fly in waves: slip behind them. Grab a shield when you see one.','a thorn':'Thorns fall straight down: sidestep early, or dash through them.','a spider':'Spiders drop on threads and pull back up: wait for them to retreat.','a Shade':'Shades follow your light: dash through them or outlast them.'};
+ const tip=cause=='hit'?(tips[by]||'Dodge early and keep your dash ready.'):'Your light drains faster over time: collect orbs early and keep your combo going.';
  $('over').innerHTML=`<h1 style="font-size:46px;animation:none">${nb?'New best!':'Light out'}</h1>
- <div class="card" style="font-size:18px;max-width:520px">Score <b style="color:var(--gold)">${g.sc}</b> · Orbs ${g.got} · Max combo ×${g.mx} · ${g.t|0}s<br>+${d} dust earned${gd?' (daily goals +'+gd+')':''}${nu.length?'<br><br>New story:<br>'+nu.join('<br>')+' (+'+nu.length*10+' dust)':''}</div>
+ <div class="card" style="font-size:18px;max-width:520px"><b>${cause=='hit'?'Caught by '+(by||'an enemy'):'Your light ran out'}</b><br>Score <b style="color:var(--gold)">${g.sc}</b> · Orbs ${g.got} · Max combo ×${g.mx} · ${g.t|0}s<br>+${d} dust earned${gd?' (daily goals +'+gd+')':''}${nu.length?'<br><br>New story:<br>'+nu.join('<br>')+' (+'+nu.length*10+' dust)':''}</div>
  <p class="how">${tip}</p><div class="row" id="ub">${upBtns()}</div><div class="row"><button class="b" onclick="again()">Again</button><button onclick="share()">Copy score</button><button onclick="menu()">Menu</button></div>`;
  show('over');
 }
@@ -111,12 +112,12 @@ function update(dt){
  for(let i=g.f.length-1;i>=0;i--){const f=g.f[i];
   if(f.t==0){f.x+=f.vx*fd;f.y=f.by+Math.sin(T*3+f.ph)*60}else if(f.t==2){f.l+=fd;f.y=f.l<1.5?-10+(f.ty+10)*(f.l/1.5):f.l<4?f.ty+Math.sin(f.l*4)*10:f.ty-(f.l-4)*160;if(f.y<-40)f.dead=1}else if(f.t==3){f.l+=fd;const dx=m.x-f.x,dy=m.y-f.y,dd=Math.hypot(dx,dy)||1,sp2=55+g.en*.4;f.x+=dx/dd*sp2*fd;f.y+=dy/dd*sp2*fd;if(f.l>14)f.dead=1}else{f.x+=f.vx*fd;f.y+=f.vy*fd}
   if(f.dead||f.x<-60||f.x>W+60||f.y>H+40){if(f.t==3&&f.l>14)ach('shade');g.f.splice(i,1);continue}
-  if(g.dash<=0&&Math.hypot(m.x-f.x,m.y-f.y)<f.r+8){g.f.splice(i,1);if(g.sh){g.sh=0;burst(f.x,f.y,'#6be7ff',16);sfx(300,.2,'square');if(!S.calm)g.shake=.2}else return end('hit')}}
+  if(g.dash<=0&&Math.hypot(m.x-f.x,m.y-f.y)<f.r+8){g.f.splice(i,1);if(g.sh){g.sh=0;burst(f.x,f.y,'#6be7ff',16);sfx(300,.2,'square');if(!S.calm)g.shake=.2}else return end('hit',['a bat','a thorn','a spider','a Shade'][f.t])}}
  g.ct-=dt;if(g.ct<=0){g.cb=0;g.m=1}
  g.sh=g.sh?1:0;g.mg=Math.max(0,g.mg-dt);g.gold=Math.max(0,g.gold-dt);g.br=Math.max(0,g.br-dt);g.fl=Math.max(0,g.fl-dt);g.web=Math.max(0,g.web-dt);g.dash=Math.max(0,g.dash-dt);g.dc=Math.max(0,g.dc-dt);if(g.t>g.gh){g.gh+=45;g.gold=10;toast('Golden hour! Double score');sfx(784,.5,'triangle');ach('gh')}g.sl=Math.max(0,g.sl-dt);g.shake=Math.max(0,g.shake-dt);
  for(let i=g.p.length-1;i>=0;i--){const p=g.p[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt;if(p.l<=0)g.p.splice(i,1)}
  if(g.sc>=500)ach('s500');if(g.m>=5)ach('c5');if(g.got>=40)ach('o40');if(g.t>=60)ach('t60');
- $('sc').textContent=g.sc;$('cb').textContent=(g.m>1?'×'+g.m+' ':'')+(g.dc<=0?'dash ready':'');$('en').style.width=g.en+'%';
+ $('sc').textContent=g.sc;$('cb').textContent=(g.m>1?'×'+g.m+' ':'')+(g.dc<=0?'dash ready':'');$('en').style.width=g.en+'%';const lo=g.en<25;$('en').style.background=lo?'#ff4466':'';$('en').style.opacity=lo&&!S.calm?String(.55+.45*Math.sin(T*10)):'1';if(lo){g.hb=(g.hb||0)-dt;if(g.hb<=0){g.hb=.9;sfx(60,.18,'sine',.12);setTimeout(()=>sfx(55,.18,'sine',.09),180)}}
 }
 /* draw */
 function glow(px,py,r,c,a=1){const q=x.createRadialGradient(px,py,0,px,py,r);q.addColorStop(0,c);q.addColorStop(1,'rgba(0,0,0,0)');x.globalAlpha=a;x.fillStyle=q;x.beginPath();x.arc(px,py,r,0,6.3);x.fill();x.globalAlpha=1}
