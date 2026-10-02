@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Lantern Moth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%A6%8B%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@800&display=swap" rel="stylesheet">
+</head><body>
+<canvas id="c"></canvas>
+<div id="hud" class="hide"><span id="sc">0</span><span id="cb"></span><div class="bar"><i id="en"></i></div><button onclick="toggle()" aria-label="Pause">pause</button></div>
+<div id="toast"></div>
+<div id="menu" class="scr"></div>
+<div id="pause" class="scr hide"><h1 style="font-size:44px;animation:none">Paused</h1><div class="row"><button class="b" onclick="toggle()">Resume</button><button onclick="again()">Restart</button><button onclick="menu()">Menu</button></div></div>
+<div id="over" class="scr hide"></div>
+<script type="module" src="/src/main.ts"></script>
+</body></html>
