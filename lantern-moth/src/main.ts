@@ -17,12 +17,13 @@ const ST:[string,string,(s:any)=>boolean,string][]=[
 ['Golden hour','For ten seconds, the whole garden sings.',s=>s.ach.includes('gh'),'Catch a Golden hour'],
 ['The storm','Rain drums on the leaves. Your light does not go out.',s=>s.ach.includes('storm'),'Weather a rainstorm'],
 ['The Gray One','It sweeps the night like a curtain, and still you stayed.',s=>s.ach.includes('boss'),'Survive the Great Gray Moth'],
-['The Shade','It only follows what shines. Be proud of being followed.',s=>s.ach.includes('shade'),'Shake off a Shade']];
+['The Shade','It only follows what shines. Be proud of being followed.',s=>s.ach.includes('shade'),'Shake off a Shade'],
+['Fireflies','They never lead you astray. They just like company.',s=>s.ach.includes('fly'),'Collect a whole firefly trail']];
 const UN=['Wider glow','Slow burn','Quick wings'];
 function upBtns(){return UN.map((n,i)=>`<button onclick="up(${i})">${n} ${S.up[i]}/3${S.up[i]<3?' ('+40*(S.up[i]+1)+')':''}</button>`).join('')}
 function up(i){const c=40*(S.up[i]+1);if(S.up[i]>=3)return;if(S.dust<c){toast('Not enough dust');return}S.dust-=c;S.up[i]++;save();sfx(700,.3);renderMenu();if(state=='over')$('ub').innerHTML=upBtns()}
 const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b'],SKN=['Amber','Frost','Rose','Moss'],COST=[0,60,150,250],DN=['Calm','Normal','Fierce'];
-const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',c5:'Combo ×5',o40:'40 orbs in a run',t60:'Survive 60s'};
+const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',fly:'Follow the fireflies',c5:'Combo ×5',o40:'40 orbs in a run',t60:'Survive 60s'};
 let AC:any,W=0,H=0,DPR=1,T=0,state='menu',g:any=null,R:()=>number=Math.random;
 function sfx(f,d=.12,t:any='sine',v=.07){if(!S.snd)return;try{AC=AC||new(window.AudioContext||(window as any).webkitAudioContext)();const o=AC.createOscillator(),n=AC.createGain();o.type=t;o.frequency.value=f;n.gain.setValueAtTime(v,AC.currentTime);n.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(n);n.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 function mb(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -52,14 +53,14 @@ function renderMenu(){
  ${J?`<div class="card jr"><b class="lb">Moth skins (cost in dust)</b><div class="row">${SK.map((c,i)=>`<button class="${S.skin==i?'sel':''}" onclick="skin(${i})"><span style="color:${c}">&#9679;</span> ${SKN[i]}${S.own.includes(i)?'':' ('+COST[i]+')'}</button>`).join('')}</div>
  <b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
  <b class="lb">Upgrades (permanent, cost dust)</b><div class="row">${upBtns()}</div><b class="lb">Moth stories (${ST.filter(t=>t[2](S)).length}/${ST.length})</b><div style="max-height:190px;overflow:auto;font-size:14px">${ST.map(t=>t[2](S)?'<p style="margin:0 0 8px"><b>'+t[0]+'</b><br>'+t[1]+'</p>':'<p style="margin:0 0 8px;opacity:.5">??? '+t[3]+'</p>').join('')}</div><b class="lb">Achievements</b><div>${Object.entries(AC_).map(([k,v])=>(S.ach.includes(k)?'[x] ':'[ ] ')+v).join('<br>')}</div>
- <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Orbs refill your light and build combos up to x5. Shield, magnet and slow-time glyphs help you survive.</div></div>`:''}`}
+ <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. Orbs refill your light and build combos up to x5. Shield, magnet and slow-time glyphs help you survive.</div></div>`:''}`}
 const CH=[[220,261.6,329.6],[174.6,220,261.6],[196,261.6,329.6],[196,246.9,293.7]];let ci=0,mt;
 function music(){if(mt)return;const tick=()=>{if(S.mus)CH[ci++%4].forEach(f=>sfx(f,4.5,'sine',.025))};tick();mt=setInterval(tick,4000)}
 function share(){const t='Lantern Moth: '+g.sc+' points, x'+g.mx+' combo, '+(g.t|0)+'s. '+location.href;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied!'),()=>toast('Could not copy'))}
 function skin(i){if(!S.own.includes(i)){if(S.dust<COST[i]){toast('Not enough dust yet');return}S.dust-=COST[i];S.own.push(i);sfx(700,.3)}S.skin=i;save();renderMenu()}
 function play(daily){
  R=daily?mb([...new Date().toISOString().slice(0,10)].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)):Math.random;
- g={daily,t:0,sc:0,en:100,cb:0,ct:0,m:1,o:[],f:[],w:[],p:[],me:{x:W/2,y:H*.6},sh:0,mg:0,sl:0,so:0,sf:2,sw:12,got:0,mx:0,shake:0,cause:'',swarm:20,gh:45,bs:60,br:0,wt:45,wx:null,fl:0,sd:0,boss:null,gold:0,dash:0,dc:0};
+ g={daily,t:0,sc:0,en:100,cb:0,ct:0,m:1,o:[],f:[],w:[],p:[],me:{x:W/2,y:H*.6},sh:0,mg:0,sl:0,so:0,sf:2,sw:12,got:0,mx:0,shake:0,cause:'',swarm:20,gh:45,bs:60,br:0,wt:45,wx:null,fl:0,sd:0,wn:0,tc:0,boss:null,gold:0,dash:0,dc:0};
  state='play';show(null);sfx(440,.2);music();
 }
 function dash(){if(state!='play'||g.dc>0)return;g.dash=.25;g.dc=4-S.up[2]*.6;burst(g.me.x,g.me.y,SK[S.skin],12);sfx(200,.15,'triangle')}
@@ -72,11 +73,12 @@ function end(cause){
  if(g.daily)S.dbest=Math.max(S.dbest,g.sc);else S.best=Math.max(S.best,g.sc);S.runs++;const nu:string[]=[];ST.forEach((t,i)=>{if(t[2](S)&&!S.seen.includes(i)){S.seen.push(i);nu.push(t[0])}});S.dust+=nu.length*10;save();
  const tip=cause=='hit'?'Bats fly in waves: slip behind them. Grab a 🛡 when you see one.':'Light drains faster over time: chase orbs early and keep your combo.';
  $('over').innerHTML=`<h1 style="font-size:46px;animation:none">${nb?'New best!':'Light out'}</h1>
- <div class="card" style="font-size:20px">Score <b style="color:var(--gold)">${g.sc}</b> · Orbs ${g.got} · Max combo ×${g.mx} · ${g.t|0}s<br>+${d} dust earned${gd?' (daily goals +'+gd+')':''}${nu.length?'<br>New story: '+nu.join(', ')+' (+'+nu.length*10+' dust)':''}</div>
+ <div class="card" style="font-size:18px;max-width:520px">Score <b style="color:var(--gold)">${g.sc}</b> · Orbs ${g.got} · Max combo ×${g.mx} · ${g.t|0}s<br>+${d} dust earned${gd?' (daily goals +'+gd+')':''}${nu.length?'<br><br>New story:<br>'+nu.join('<br>')+' (+'+nu.length*10+' dust)':''}</div>
  <p class="how">${tip}</p><div class="row" id="ub">${upBtns()}</div><div class="row"><button class="b" onclick="again()">Again</button><button onclick="share()">Copy score</button><button onclick="menu()">Menu</button></div>`;
  show('over');
 }
 /* update */
+function trail(){const ph=R()*6,fl=R()<.5;g.tc=0;for(let i=0;i<10;i++){const u=i/9;g.o.push({x:W*(.1+(fl?1-u:u)*.8),y:H*.5+Math.sin(u*6+ph)*H*.28,l:9,ph:i,tr:1})}sfx(660,.3,'triangle')}
 const rn=()=>g.wx&&g.wx.k=='rain'&&g.wx.warn<=0;
 function update(dt){
  g.t+=dt;const m=g.me,sp=[.8,1,1.3][S.diff];
@@ -92,15 +94,15 @@ function update(dt){
   g.sf=Math.max(.5,2.2-g.t*.02)*(S.diff==0?1.3:S.diff==2?.8:1)}
  if(g.t>g.bs){g.bs+=90;g.boss={l:0,ft:0,x:W/2};toast('The Great Gray Moth!');sfx(90,.8,'sawtooth',.08)}
  if(g.boss){const b=g.boss;b.l+=dt;b.x=W/2+Math.sin(b.l*.9)*W*.35;b.ft-=dt;if(b.ft<=0){b.ft=.9;g.f.push({t:1,x:b.x,y:100,vx:(R()-.5)*120,vy:150,r:10})}if(b.l>12){g.boss=null;g.br=5;for(let i=0;i<6;i++)g.o.push({x:40+R()*(W-80),y:90+R()*(H-150),l:9,ph:i});g.sc+=200;ach('boss');toast('Boss survived! +200');sfx(784,.5,'triangle')}}
- if(g.wx){const w=g.wx;if(w.warn>0)w.warn-=dt;else{w.l-=dt;if(!S.calm&&R()<.1*dt){g.fl=.15;sfx(70,.4,'sawtooth',.04)}
+ if(g.wx){const w=g.wx;if(w.warn>0)w.warn-=dt;else{w.l-=dt;if(w.k=='rain'&&!S.calm&&R()<.1*dt){g.fl=.15;sfx(70,.4,'sawtooth',.04)}
   if(w.l<=0){if(w.k=='rain')ach('storm');g.wx=null;g.wt=35+R()*20;toast('The weather clears')}}}
- else if(!g.boss&&g.br<=0&&g.gold<=0){g.wt-=dt;if(g.wt<=0){g.wx={k:'rain',l:10,warn:2};toast('Storm clouds rolling in...');sfx(180,.6,'sawtooth',.03)}}
+ else if(!g.boss&&g.br<=0&&g.gold<=0){g.wt-=dt;if(g.wt<=0){g.wn++;const fly=g.wn%3==0;g.wx=fly?{k:'fly',l:8,warn:0}:{k:'rain',l:10,warn:2};toast(fly?'Fireflies drift through the garden':'Storm clouds rolling in...');if(fly)trail();else sfx(180,.6,'sawtooth',.03)}}
  g.sd-=dt;if(g.sd<=0&&g.t>40&&!g.boss&&!g.f.some(f=>f.t==3)){g.f.push({t:3,x:R()<.5?20:W-20,y:H*.3,vx:0,vy:0,r:11,l:0});g.sd=25+R()*10;toast('A Shade follows your light')}
  g.sw-=dt;if(g.sw<=0){g.w.push({x:40+R()*(W-80),y:90+R()*(H-150),k:(R()*3)|0,l:9});g.sw=14}
  if(g.t>g.swarm){g.swarm+=20;toast('Firefly swarm!');sfx(660,.3,'triangle');const cx=W/2,cy=H/2;for(let i=0;i<8;i++){const a=i/8*6.28;g.o.push({x:cx+Math.cos(a)*Math.min(W,H)*.3,y:cy+Math.sin(a)*Math.min(W,H)*.3,l:9,ph:i})}}
  for(let i=g.o.length-1;i>=0;i--){const o=g.o[i];o.l-=dt;const d=Math.hypot(m.x-o.x,m.y-o.y);
   if(g.mg>0&&d<260){o.x+=(m.x-o.x)*dt*5;o.y+=(m.y-o.y)*dt*5}
-  if(d<24+S.up[0]*5){g.o.splice(i,1);g.en=Math.min(100,g.en+12);g.cb++;g.ct=2;g.m=Math.min(5,1+(g.cb/5|0));g.sc+=10*g.m*(g.gold>0?2:1);g.got++;g.mx=Math.max(g.mx,g.m);burst(o.x,o.y,'#ffe9a8',8);sfx(480+Math.min(g.cb,20)*25,.1,'sine')}
+  if(d<24+S.up[0]*5){g.o.splice(i,1);g.en=Math.min(100,g.en+12);if(o.tr){g.tc++;if(g.tc>=10)ach('fly')}g.cb++;g.ct=2;g.m=Math.min(5,1+(g.cb/5|0));g.sc+=10*g.m*(g.gold>0?2:1);g.got++;g.mx=Math.max(g.mx,g.m);burst(o.x,o.y,'#ffe9a8',8);sfx(480+Math.min(g.cb,20)*25,.1,'sine')}
   else if(o.l<=0)g.o.splice(i,1)}
  for(let i=g.w.length-1;i>=0;i--){const w=g.w[i];w.l-=dt;if(Math.hypot(m.x-w.x,m.y-w.y)<26){g.w.splice(i,1);[g.sh=1,g.mg=8,g.sl=6][w.k];if(w.k==0)g.sh=1;burst(w.x,w.y,'#fff',14);sfx(900,.25,'triangle');toast(['Shield!','Magnet!','Slow time!'][w.k])}else if(w.l<=0)g.w.splice(i,1)}
  for(let i=g.f.length-1;i>=0;i--){const f=g.f[i];
@@ -152,6 +154,7 @@ function draw(){
  const v=x.createRadialGradient(m.x,m.y,50,m.x,m.y,(rn()?150:170)+g.en*5);v.addColorStop(0,'rgba(5,3,20,0)');v.addColorStop(1,'rgba(5,3,20,.72)');x.fillStyle=v;x.fillRect(-10,-10,W+20,H+20);
  if(g.wx){const w=g.wx,ap=w.warn>0?1-w.warn/2:1;
  if(w.k=='rain'){x.fillStyle='rgba(40,40,70,'+.6*ap+')';for(let i=0;i<5;i++){const cx=((i*W/4+T*14)%(W+240))-120,cy=34+(i%2)*22;[[0,0,60],[50,6,46],[-50,8,42],[20,-14,40]].forEach(c=>{x.beginPath();x.arc(cx+c[0],cy+c[1],c[2]*.55,0,6.3);x.fill()})}}
+ else if(w.k=='fly'){x.fillStyle='rgba(255,236,150,.8)';for(const d of drops.slice(0,30)){const px=(d.x*W+Math.sin(T+d.y*9)*40+T*12*d.s)%W,py=d.y*H+Math.cos(T*.8+d.x*9)*30;x.beginPath();x.arc(px,py,2+Math.sin(T*3+d.x*20),0,6.3);x.fill()}}
  }
  if(g.fl>0){x.fillStyle='rgba(220,230,255,'+Math.min(.4,g.fl*2)+')';x.fillRect(0,0,W,H)}
  x.restore();
