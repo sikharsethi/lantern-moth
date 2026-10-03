@@ -2,8 +2,8 @@ import './style.css'
 
 const $=(i:string)=>document.getElementById(i)!,cv=$('c') as HTMLCanvasElement,x=cv.getContext('2d')!;
 let S:any={};try{S=JSON.parse(localStorage.getItem('moth')||'{}')}catch(e){}
-S=Object.assign({runs:0,seen:[],trail:0,town:[0],up:[0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
-while(S.up.length<5)S.up.push(0);
+S=Object.assign({runs:0,seen:[],comp:0,cown:[0],trail:0,town:[0],up:[0,0,0,0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
+while(S.up.length<8)S.up.push(0);
 const save=()=>{try{localStorage.setItem('moth',JSON.stringify(S))}catch(e){}};
 const dk=new Date().toISOString().slice(0,10);if(!S.dg||S.dg.d!=dk)S.dg={d:dk,done:[]};
 const GP:[string,(r:any)=>boolean][]=[['Collect 30 orbs in one run',r=>r.got>=30],['Reach combo x4',r=>r.mx>=4],['Survive 50 seconds',r=>r.t>=50],['Score 400 points',r=>r.sc>=400],['Reach combo x5',r=>r.mx>=5],['Collect 60 orbs in one run',r=>r.got>=60]];
@@ -21,10 +21,10 @@ const ST:[string,string,(s:any)=>boolean,string][]=[
 ['The Shade','It only follows what shines. Be proud of being followed.',s=>s.ach.includes('shade'),'Shake off a Shade'],
 ['Fireflies','They never lead you astray. They just like company.',s=>s.ach.includes('fly'),'Collect a whole firefly trail'],
 ['The Weaver','Her threads hum with every wingbeat you make. You flew through them anyway.',s=>s.ach.includes('weaver'),'Survive the Weaver']];
-const UN=['Wider glow','Slow burn','Quick wings','Lucky orbs','Combo keeper'],upc=(i:number)=>(i>2?80:40)*(S.up[i]+1);
+const UN=['Wider glow','Slow burn','Quick wings','Lucky orbs','Combo keeper','Helper time','Helper speed','Helper skill'],upc=(i:number)=>(i>4?100:i>2?80:40)*(S.up[i]+1);
 function upBtns(){return UN.map((n,i)=>`<button onclick="up(${i})">${n} ${S.up[i]}/3${S.up[i]<3?' ('+upc(i)+')':''}</button>`).join('')}
 function up(i){const c=upc(i);if(S.up[i]>=3)return;if(S.dust<c){toast('Not enough dust');return}S.dust-=c;S.up[i]++;save();sfx(700,.3);renderMenu();if(state=='over')$('ub').innerHTML=upBtns()}
-const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b','#ff7a3d','#b48cff','#ffe27a'],SKN=['Amber','Frost','Rose','Moss','Ember','Violet','Gold'],COST=[0,60,150,250,350,500,800],SKP=['','','','','Longer dash','Start each run with a shield','+10% score'],TN=['Plain','Sparks','Rainbow'],TC=[0,120,300],DN=['Calm','Normal','Fierce'];
+const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b','#ff7a3d','#b48cff','#ffe27a'],SKN=['Amber','Frost','Rose','Moss','Ember','Violet','Gold'],COST=[0,60,150,250,350,500,800],SKP=['','','','','Longer dash','Start each run with a shield','+10% score'],TN=['Plain','Sparks','Rainbow'],TC=[0,120,300],CN=['Helper moth','Firefly','Owl','Beetle'],CC=[0,400,700,1000],CDESC=['Fetches orbs for you','Drops orbs for you to chase','Gives you a shield and renews it','Blocks nearby thorns'],DN=['Calm','Normal','Fierce'];
 const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',fly:'Follow the fireflies',weaver:'Survive the Weaver',c5:'Combo ×5',o40:'40 orbs in a run',t60:'Survive 60s'};
 let AC:any,W=0,H=0,DPR=1,T=0,state='menu',g:any=null,R:()=>number=Math.random;
 function sfx(f,d=.12,t:any='sine',v=.07){if(!S.snd)return;try{AC=AC||new(window.AudioContext||(window as any).webkitAudioContext)();const o=AC.createOscillator(),n=AC.createGain();o.type=t;o.frequency.value=f;n.gain.setValueAtTime(v,AC.currentTime);n.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(n);n.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
@@ -53,9 +53,9 @@ function renderMenu(){
  <p class="how">Best ${S.best} &middot; Dust ${S.dust}<br><br>Today's goals:<br>${goals().map(i=>(S.dg.done.includes(i)?'[x] ':'[ ] ')+GP[i][0]).join('<br>')}</p>
  <button onclick="togJ()">${J?'Close journal':"Moth's journal"}</button>
  ${J?`<div class="card jr"><b class="lb">Moth skins (cost in dust)</b><div class="row">${SK.map((c,i)=>`<button class="${S.skin==i?'sel':''}" onclick="skin(${i})"><span style="color:${c}">&#9679;</span> ${SKN[i]}${S.own.includes(i)?'':' ('+COST[i]+')'}</button>`).join('')}</div>
- <div class="how">${SKN[S.skin]}: ${SKP[S.skin]||'cosmetic only'}</div><b class="lb">Wing trails</b><div class="row">${TN.map((n,i)=>`<button class="${S.trail==i?'sel':''}" onclick="trl(${i})">${n}${S.town.includes(i)?'':' ('+TC[i]+')'}</button>`).join('')}</div><b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
+ <div class="how">${SKN[S.skin]}: ${SKP[S.skin]||'cosmetic only'}</div><b class="lb">Wing trails</b><div class="row">${TN.map((n,i)=>`<button class="${S.trail==i?'sel':''}" onclick="trl(${i})">${n}${S.town.includes(i)?'':' ('+TC[i]+')'}</button>`).join('')}</div><b class="lb">Companions (from Helper pickups)</b><div class="row">${CN.map((n,i)=>`<button class="${S.comp==i?'sel':''}" onclick="cmp(${i})">${n}${S.cown.includes(i)?'':' ('+CC[i]+')'}</button>`).join('')}</div><div class="how">${CN[S.comp]}: ${CDESC[S.comp]}</div><b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
  <b class="lb">Upgrades (permanent, cost dust)</b><div class="row">${upBtns()}</div><b class="lb">Moth stories (${ST.filter(t=>t[2](S)).length}/${ST.length})</b><div style="max-height:190px;overflow:auto;font-size:14px">${ST.map(t=>t[2](S)?'<p style="margin:0 0 8px"><b>'+t[0]+'</b><br>'+t[1]+'</p>':'<p style="margin:0 0 8px;opacity:.5">??? '+t[3]+'</p>').join('')}</div><b class="lb">Achievements</b><div>${Object.entries(AC_).map(([k,v])=>(S.ach.includes(k)?'[x] ':'[ ] ')+v).join('<br>')}</div>
- <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; the helper moth fetches orbs. Orbs refill your light and build combos up to x5. Shield, magnet and slow-time glyphs help you survive.</div></div>`:''}`}
+ <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; Helper pickups summon your chosen companion. Orbs refill your light and build combos up to x5. Shield, magnet and slow-time glyphs help you survive.</div></div>`:''}`}
 const CH=[[220,261.6,329.6],[174.6,220,261.6],[196,261.6,329.6],[196,246.9,293.7]];let ci=0,mt;
 function music(){if(mt)return;const tick=()=>{if(S.mus)CH[ci++%4].forEach(f=>sfx(f,4.5,'sine',.025))};tick();mt=setInterval(tick,4000)}
 function share(){const t='Lantern Moth: '+g.sc+' points, x'+g.mx+' combo, '+(g.t|0)+'s. '+location.href;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied!'),()=>toast('Could not copy'))}
@@ -102,7 +102,12 @@ function update(dt){
   if(w.l<=0){if(w.k=='rain')ach('storm');g.wx=null;g.wt=35+R()*20;toast('The weather clears')}}}
  else if(!g.boss&&g.br<=0&&g.gold<=0){g.wt-=dt;if(g.wt<=0){g.wn++;const fly=g.wn%3==0;g.wx=fly?{k:'fly',l:8,warn:0}:{k:'rain',l:10,warn:2};toast(fly?'Fireflies drift through the garden':'Storm clouds rolling in...');if(fly)trail();else sfx(180,.6,'sawtooth',.03)}}
  for(let i=g.wb.length-1;i>=0;i--){const q=g.wb[i];q.l+=dt;if(q.l>4){g.wb.splice(i,1);continue}if(q.l>1&&g.dash<=0&&segd(m.x,m.y,q.x1,q.y1,q.x2,q.y2)<14){if(g.web<=0)sfx(150,.2,'square',.05);g.web=1.5}}
- if(g.hp>0){g.hp-=dt;const h=g.hm;let bo:any=null,bd=1e9;g.o.forEach(o=>{const d=Math.hypot(o.x-h.x,o.y-h.y);if(d<bd){bd=d;bo=o}});const tx=bo?bo.x:m.x+30,ty=bo?bo.y:m.y-30,dd=Math.hypot(tx-h.x,ty-h.y)||1;h.x+=(tx-h.x)/dd*220*dt;h.y+=(ty-h.y)/dd*220*dt;if(bo&&bd<14){g.o.splice(g.o.indexOf(bo),1);g.en=Math.min(100,g.en+12);g.sc+=10;g.got++;burst(h.x,h.y,'#9fffd0',6);sfx(560,.08)}}
+ if(g.hp>0){g.hp-=dt;const h=g.hm,c=S.comp;
+ if(c==0){let bo:any=null,bd=1e9;g.o.forEach(o=>{const d=Math.hypot(o.x-h.x,o.y-h.y);if(d<bd){bd=d;bo=o}});const tx=bo?bo.x:m.x+30,ty=bo?bo.y:m.y-30,dd=Math.hypot(tx-h.x,ty-h.y)||1,hs=220*(1+S.up[6]*.2);h.x+=(tx-h.x)/dd*hs*dt;h.y+=(ty-h.y)/dd*hs*dt;if(bo&&bd<14+S.up[7]*8){g.o.splice(g.o.indexOf(bo),1);g.en=Math.min(100,g.en+12);g.sc+=10;g.got++;burst(h.x,h.y,'#9fffd0',6);sfx(560,.08)}}
+ else if(c==1){const tx=W/2+Math.sin(T*.8)*W*.35,ty=H*.5+Math.cos(T*1.1)*H*.25,dd=Math.hypot(tx-h.x,ty-h.y)||1,hs=160*(1+S.up[6]*.2);h.x+=(tx-h.x)/dd*hs*dt;h.y+=(ty-h.y)/dd*hs*dt;g.hd=(g.hd||0)-dt;if(g.hd<=0){g.hd=1.1-S.up[7]*.1;g.o.push({x:h.x,y:h.y,l:9,ph:0})}}
+ else{const a=T*(c==2?2:3.5),r=c==2?34:42;h.x=m.x+Math.cos(a)*r;h.y=m.y+Math.sin(a)*r;
+  if(c==2){g.os=(g.os||0)+dt;if(!g.sh&&g.os>5-S.up[7]*.5){g.sh=1;g.os=0;burst(m.x,m.y,'#c9a27a',10);sfx(420,.15,'triangle')}}
+  else g.f.forEach(f=>{if(f.t==1&&Math.hypot(f.x-m.x,f.y-m.y)<55+S.up[7]*8){f.dead=1;burst(f.x,f.y,'#6fd0a0',6)}})}}
  g.sd-=dt;if(g.sd<=0&&g.t>40&&!g.boss&&!g.f.some(f=>f.t==3)){g.f.push({t:3,x:R()<.5?20:W-20,y:H*.3,vx:0,vy:0,r:11,l:0});g.sd=25+R()*10;toast('A Shade follows your light')}
  g.sw-=dt;if(g.sw<=0){g.w.push({x:40+R()*(W-80),y:90+R()*(H-150),k:(R()*5)|0,l:9});g.sw=11}
  if(g.t>g.swarm){g.swarm+=20;toast('Firefly swarm!');sfx(660,.3,'triangle');const cx=W/2,cy=H/2;for(let i=0;i<8;i++){const a=i/8*6.28;g.o.push({x:cx+Math.cos(a)*Math.min(W,H)*.3,y:cy+Math.sin(a)*Math.min(W,H)*.3,l:9,ph:i})}}
@@ -110,7 +115,7 @@ function update(dt){
   if(g.mg>0&&d<260){o.x+=(m.x-o.x)*dt*5;o.y+=(m.y-o.y)*dt*5}
   if(d<24+S.up[0]*5){g.o.splice(i,1);g.en=Math.min(100,g.en+(R()<S.up[3]*.06?25:12));if(o.tr){g.tc++;if(g.tc>=10)ach('fly')}g.cb++;g.ct=2+S.up[4]*.3;g.m=Math.min(5,1+(g.cb/5|0));g.sc+=Math.round(10*g.m*(g.gold>0?2:1)*(S.skin==6?1.1:1));g.got++;g.mx=Math.max(g.mx,g.m);burst(o.x,o.y,'#ffe9a8',8);sfx(480+Math.min(g.cb,20)*25,.1,'sine')}
   else if(o.l<=0)g.o.splice(i,1)}
- for(let i=g.w.length-1;i>=0;i--){const w=g.w[i];w.l-=dt;if(Math.hypot(m.x-w.x,m.y-w.y)<26){g.w.splice(i,1);if(w.k==0)g.sh=1;else if(w.k==1)g.mg=10;else if(w.k==2)g.sl=7;else if(w.k==3){g.f.forEach(f=>{if(Math.hypot(f.x-m.x,f.y-m.y)<240){f.dead=1;burst(f.x,f.y,'#ffd36b',10)}});burst(m.x,m.y,'#ffd36b',24);if(!S.calm)g.fl=.12}else{g.hp=10;g.hm={x:m.x,y:m.y}}burst(w.x,w.y,'#fff',14);sfx(900,.25,'triangle');toast(['Shield!','Magnet!','Slow time!','Lantern burst!','Helper moth!'][w.k])}else if(w.l<=0)g.w.splice(i,1)}
+ for(let i=g.w.length-1;i>=0;i--){const w=g.w[i];w.l-=dt;if(Math.hypot(m.x-w.x,m.y-w.y)<26){g.w.splice(i,1);if(w.k==0)g.sh=1;else if(w.k==1)g.mg=10;else if(w.k==2)g.sl=7;else if(w.k==3){g.f.forEach(f=>{if(Math.hypot(f.x-m.x,f.y-m.y)<240){f.dead=1;burst(f.x,f.y,'#ffd36b',10)}});burst(m.x,m.y,'#ffd36b',24);if(!S.calm)g.fl=.12}else{g.hp=10+S.up[5]*3;g.hm={x:m.x,y:m.y};g.os=0;if(S.comp==2)g.sh=1}burst(w.x,w.y,'#fff',14);sfx(900,.25,'triangle');toast(['Shield!','Magnet!','Slow time!','Lantern burst!',CN[S.comp]+'!'][w.k])}else if(w.l<=0)g.w.splice(i,1)}
  for(let i=g.f.length-1;i>=0;i--){const f=g.f[i];
   if(f.t==0){f.x+=f.vx*fd;f.y=f.by+Math.sin(T*3+f.ph)*60}else if(f.t==2){f.l+=fd;f.y=f.l<1.5?-10+(f.ty+10)*(f.l/1.5):f.l<4?f.ty+Math.sin(f.l*4)*10:f.ty-(f.l-4)*160;if(f.y<-40)f.dead=1}else if(f.t==3){f.l+=fd;const dx=m.x-f.x,dy=m.y-f.y,dd=Math.hypot(dx,dy)||1,sp2=55+g.en*.4;f.x+=dx/dd*sp2*fd;f.y+=dy/dd*sp2*fd;if(f.l>14)f.dead=1}else{f.x+=f.vx*fd;f.y+=f.vy*fd}
   if(f.dead||f.x<-60||f.x>W+60||f.y>H+40){if(f.t==3&&f.l>14)ach('shade');g.f.splice(i,1);continue}
@@ -151,7 +156,11 @@ function draw(){
  g.wb.forEach(q=>{const a=q.l<1;x.strokeStyle=a?'rgba(255,255,255,'+(.2+.2*Math.sin(T*20))+')':'rgba(230,220,255,.9)';x.lineWidth=a?1:3;x.beginPath();x.moveTo(q.x1,q.y1);x.lineTo(q.x2,q.y2);x.stroke()});
  if(g.boss&&g.boss.k=='s'){x.save();x.translate(g.boss.x,70);x.strokeStyle='#5a3a8a';x.lineWidth=4;for(let i=-1;i<2;i+=2)for(let j=0;j<4;j++){x.beginPath();x.moveTo(0,0);x.lineTo(i*(26+j*6),-10+j*14+Math.sin(T*5+j)*4);x.stroke()}x.fillStyle='#2a1650';x.beginPath();x.arc(0,0,20,0,6.3);x.fill();x.fillStyle='#ff4466';x.fillRect(-8,-4,5,5);x.fillRect(3,-4,5,5);x.restore()}
  else if(g.boss){x.save();x.translate(g.boss.x,70);x.fillStyle='#3b3552';[-1,1].forEach(q=>{x.save();x.scale(q,1);x.beginPath();x.ellipse(34,0,38,20+Math.sin(T*8)*8,.2,0,6.3);x.fill();x.fillStyle='#ffd36b';x.beginPath();x.arc(40,2,6,0,6.3);x.fill();x.restore()});x.beginPath();x.ellipse(0,4,9,22,0,0,6.3);x.fill();x.restore()}
- if(g.hp>0){glow(g.hm.x,g.hm.y,22,'#9fffd0',.7);x.fillStyle='#9fffd0';[-1,1].forEach(q=>{x.save();x.translate(g.hm.x,g.hm.y);x.scale(q,1);x.beginPath();x.ellipse(5,-1,6,3+Math.sin(T*26)*2,.4,0,6.3);x.fill();x.restore()})}
+ if(g.hp>0){const h=g.hm,col=['#9fffd0','#ffe27a','#c9a27a','#6fd0a0'][S.comp];glow(h.x,h.y,22,col,.7);x.fillStyle=col;
+ if(S.comp==0)[-1,1].forEach(q=>{x.save();x.translate(h.x,h.y);x.scale(q,1);x.beginPath();x.ellipse(5,-1,6,3+Math.sin(T*26)*2,.4,0,6.3);x.fill();x.restore()});
+ else if(S.comp==1){x.beginPath();x.arc(h.x,h.y,4,0,6.3);x.fill()}
+ else if(S.comp==2){x.beginPath();x.arc(h.x,h.y,7,0,6.3);x.fill();x.fillStyle='#2a1c10';x.fillRect(h.x-4,h.y-2,2,3);x.fillRect(h.x+2,h.y-2,2,3)}
+ else{x.beginPath();x.ellipse(h.x,h.y,9,6,0,0,6.3);x.fill();x.strokeStyle='#14302a';x.lineWidth=1.5;x.beginPath();x.moveTo(h.x-9,h.y);x.lineTo(h.x+9,h.y);x.stroke()}}
  const m=g.me,c=SK[S.skin],fl=Math.sin(T*22);
  x.globalCompositeOperation='lighter';glow(m.x,m.y,50+g.en*.5,c,.6);x.globalCompositeOperation='source-over';
  x.fillStyle=c;[-1,1].forEach(s=>{x.save();x.translate(m.x,m.y);x.scale(s,1);x.beginPath();x.ellipse(11,-3,12,8+fl*4,.4,0,6.3);x.fill();x.restore()});
@@ -173,10 +182,11 @@ function loop(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;T+=dt;if(state==
 menu();requestAnimationFrame(loop);
 
 function trl(i:number){if(!S.town.includes(i)){if(S.dust<TC[i]){toast('Not enough dust yet');return}S.dust-=TC[i];S.town.push(i);sfx(700,.3)}S.trail=i;save();renderMenu()}
+function cmp(i:number){if(!S.cown.includes(i)){if(S.dust<CC[i]){toast('Not enough dust yet');return}S.dust-=CC[i];S.cown.push(i);sfx(700,.3)}S.comp=i;save();renderMenu()}
 function again(){play(g.daily)}
 function togJ(){J^=1;music();renderMenu()}
 function togDiff(){S.diff=(S.diff+1)%3;save();renderMenu()}
 function togSnd(){S.snd^=1;save();renderMenu()}
 function togMus(){S.mus^=1;save();renderMenu()}
 function togCalm(){S.calm^=1;document.body.classList.toggle('calm',!!S.calm);save();renderMenu()}
-Object.assign(window,{trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
+Object.assign(window,{cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
