@@ -2,13 +2,13 @@ import './style.css'
 
 const $=(i:string)=>document.getElementById(i)!,cv=$('c') as HTMLCanvasElement,x=cv.getContext('2d')!;
 let S:any={};try{S=JSON.parse(localStorage.getItem('moth')||'{}')}catch(e){}
-S=Object.assign({rain:1,gar:[],vs:.7,vm:.45,runs:0,seen:[],comp:0,cown:[0],trail:0,town:[0],up:[0,0,0,0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
+S=Object.assign({gar:[],vs:.7,vm:.7,runs:0,seen:[],comp:0,cown:[0],trail:0,town:[0],up:[0,0,0,0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
 while(S.up.length<8)S.up.push(0);
 const G=(i:number)=>S.gar.includes(i);
 const save=()=>{try{localStorage.setItem('moth',JSON.stringify(S))}catch(e){}};
 const dk=new Date().toISOString().slice(0,10);if(!S.dg||S.dg.d!=dk)S.dg={d:dk,done:[]};
-if(!S.sv){if(S.best>0){S.best=Math.round(S.best*.65);S.dbest=Math.round(S.dbest*.65);setTimeout(()=>toast('Scoring updated: combos now top out at x3, so your best score was adjusted'),1500)}S.sv=2;save()}
-const GP:[string,(r:any)=>boolean][]=[['Collect 30 orbs in one run',r=>r.got>=30],['Reach combo x2',r=>r.mx>=2],['Survive 50 seconds',r=>r.t>=50],['Score 400 points',r=>r.sc>=400],['Reach combo x3',r=>r.mx>=3],['Collect 60 orbs in one run',r=>r.got>=60]];
+if(S.sv==2){S.best=Math.round(S.best/.65);S.dbest=Math.round(S.dbest/.65);S.sv=3;save();setTimeout(()=>toast('Scoring restored to the original'),1500)}
+const GP:[string,(r:any)=>boolean][]=[['Collect 30 orbs in one run',r=>r.got>=30],['Reach combo x4',r=>r.mx>=4],['Survive 50 seconds',r=>r.t>=50],['Score 400 points',r=>r.sc>=400],['Reach combo x5',r=>r.mx>=5],['Collect 60 orbs in one run',r=>r.got>=60]];
 function goals(){const r=mb([...dk].reduce((a,c)=>a*17+c.charCodeAt(0)|0,3)),ix=[];while(ix.length<3){const i=(r()*GP.length)|0;if(!ix.includes(i))ix.push(i)}return ix}
 const ST:[string,string,(s:any)=>boolean,string][]=[
 ['First flight','Every moth begins as a flicker. Yours has just learned to burn.',s=>s.runs>=1,'Finish a run'],
@@ -27,7 +27,7 @@ const UN=['Wider glow','Slow burn','Quick wings','Lucky orbs','Combo keeper','He
 function upBtns(){return UN.map((n,i)=>`<button onclick="up(${i})">${n} ${S.up[i]}/3${S.up[i]<3?' ('+upc(i)+')':''}</button>`).join('')}
 function up(i){const c=upc(i);if(S.up[i]>=3)return;if(S.dust<c){toast('Not enough dust');return}S.dust-=c;S.up[i]++;save();sfx(700,.3);renderMenu();if(state=='over')$('ub').innerHTML=upBtns()}
 const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b','#ff7a3d','#b48cff','#ffe27a'],SKN=['Amber','Frost','Rose','Moss','Ember','Violet','Gold'],COST=[0,120,400,800,1400,2200,5500],SKP=['','','','','Longer dash','Start each run with a shield','+10% score'],TN=['Plain','Sparks','Rainbow'],TC=[0,250,1200],CN=['Helper moth','Firefly','Owl','Beetle'],CC=[0,1500,3500,7000],CDESC=['Fetches orbs for you','Drops orbs for you to chase','Shields you, then shoots nearby enemies','Blocks nearby thorns'],DN=['Calm','Normal','Fierce'];
-const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',fly:'Follow the fireflies',weaver:'Survive the Weaver',c5:'Combo ×3',o40:'40 orbs in a run',t60:'Survive 60s'};
+const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',fly:'Follow the fireflies',weaver:'Survive the Weaver',c5:'Combo ×5',o40:'40 orbs in a run',t60:'Survive 60s'};
 let AC:any,W=0,H=0,DPR=1,T=0,state='menu',g:any=null,R:()=>number=Math.random;
 function tone(f:number,d:number,t:any,v:number,lp=0,a=0){if(v<=.0005)return;try{AC=AC||new((window as any).AudioContext||(window as any).webkitAudioContext)();if(AC.state=='suspended')AC.resume();const o=AC.createOscillator(),n=AC.createGain(),now=AC.currentTime;o.type=t;o.frequency.value=f;if(a){n.gain.setValueAtTime(.0001,now);n.gain.exponentialRampToValueAtTime(v,now+a)}else n.gain.setValueAtTime(v,now);n.gain.exponentialRampToValueAtTime(.001,now+d);if(lp){const fl=AC.createBiquadFilter();fl.type='lowpass';fl.frequency.value=lp;o.connect(fl);fl.connect(n)}else o.connect(n);n.connect(AC.destination);o.start();o.stop(now+d)}catch(e){}}
 function sfx(f:number,d=.12,t:any='sine',v=.07){if(S.snd)tone(f,d,t,v*2*S.vs)}
@@ -62,12 +62,12 @@ function jtab(){
  if(JT==0)return `<b class="lb">Moth skins (cost in dust)</b><div class="row">${SK.map((c,i)=>`<button class="${S.skin==i?'sel':''}" onclick="skin(${i})"><span style="color:${c}">&#9679;</span> ${SKN[i]}${S.own.includes(i)?'':' ('+COST[i]+')'}</button>`).join('')}</div><div class="how">${SKN[S.skin]}: ${SKP[S.skin]||'cosmetic only'}</div><b class="lb">Wing trails</b><div class="row">${TN.map((n,i)=>`<button class="${S.trail==i?'sel':''}" onclick="trl(${i})">${n}${S.town.includes(i)?'':' ('+TC[i]+')'}</button>`).join('')}</div><b class="lb">Companions (from Helper pickups)</b><div class="row">${CN.map((n,i)=>`<button class="${S.comp==i?'sel':''}" onclick="cmp(${i})">${n}${S.cown.includes(i)?'':' ('+CC[i]+')'}</button>`).join('')}</div><div class="how">${CN[S.comp]}: ${CDESC[S.comp]}</div>`;
  if(JT==1)return `<b class="lb">Upgrades (permanent, cost dust)</b><div class="row">${upBtns()}</div>`;
  if(JT==2)return `<b class="lb">Restore the garden</b>${gardenSVG()}<div class="how">Spend dust to bring the garden back to life. Restored things appear on the home screen and give small bonuses.</div>${GN.map((n,i)=>`<div class="row"><button class="${G(i)?'sel':''}" onclick="buyG(${i})">${n}${G(i)?' (restored)':' ('+GC[i]+')'}</button><span class="how">${GD[i]}</span></div>`).join('')}<div class="how">${S.gar.length}/${GN.length} restored</div>`;
- if(JT==3)return `<b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togRain()">Rain: ${S.rain?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
+ if(JT==3)return `<b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
  <label class="how">Effects volume <input type="range" min="0" max="100" value="${Math.round(S.vs*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vs',this.value)" onchange="vol('vs',this.value,1)"></label>
  <label class="how">Music volume <input type="range" min="0" max="100" value="${Math.round(S.vm*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vm',this.value)"></label>
  <b class="lb">Move your progress</b><div class="how">Copy a save code here, then paste it on your other device and press Load.</div><textarea id="savebox" rows="2" style="width:100%;font-size:11px;background:#14102e;color:#f4efff;border:1px solid #4a3a6a;border-radius:6px" placeholder="Paste a save code here"></textarea><div class="row"><button onclick="copyCode()">Copy save code</button><button onclick="loadCode()">Load save code</button></div>`;
  return `<b class="lb">Moth stories (${ST.filter(t=>t[2](S)).length}/${ST.length})</b><div style="max-height:190px;overflow:auto;font-size:14px">${ST.map(t=>t[2](S)?'<p style="margin:0 0 8px"><b>'+t[0]+'</b><br>'+t[1]+'</p>':'<p style="margin:0 0 8px;opacity:.5">??? '+t[3]+'</p>').join('')}</div><b class="lb">Achievements</b><div>${Object.entries(AC_).map(([k,v])=>(S.ach.includes(k)?'[x] ':'[ ] ')+v).join('<br>')}</div>
- <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; Helper pickups summon your chosen companion. Orbs refill your light and build combos up to x3.</div>`}
+ <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; Helper pickups summon your chosen companion. Orbs refill your light and build combos up to x5.</div>`}
 function renderMenu(){
  $('menu').innerHTML=`<h1>Lantern<br>Moth</h1><p class="sub"><i>A small moth. A fading light.<br>Keep the garden glowing.</i></p>
  <div class="row"><button class="b" onclick="play(0)">Play</button><button class="b2" onclick="play(1)">Tonight's lantern</button></div>
@@ -76,12 +76,10 @@ function renderMenu(){
  ${J?`<div class="card jr"><div class="row" style="flex-wrap:nowrap;gap:5px">${TABS.map((n,i)=>`<button class="${JT==i?'sel':''}" style="padding:6px 8px;font-size:12.5px" onclick="tab(${i})">${n}</button>`).join('')}</div>${jtab()}</div>`:''}`}
 function tab(i:number){JT=i;renderMenu()}
 function buyG(i:number){if(G(i))return;if(S.dust<GC[i]){toast('Not enough dust yet');return}S.dust-=GC[i];S.gar.push(i);save();sfx(700,.3);renderMenu()}
-const PAD=[[110,164.8,196,261.6],[87.3,130.8,164.8,220],[130.8,196,246.9,329.6],[98,146.8,220,293.7]],PN=[329.6,392,440,523,587];let mi=0,mt:any,rainG:any=null;
-function rainInit(){try{AC=AC||new((window as any).AudioContext||(window as any).webkitAudioContext)();if(AC.state=='suspended')AC.resume();if(rainG)return;const n=AC.sampleRate*4,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;rainG=AC.createGain();rainG.gain.value=0;[[1800,1],[420,1.6]].forEach(([fq,gn])=>{const src=AC.createBufferSource();src.buffer=b;src.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=fq;const gg=AC.createGain();gg.gain.value=gn;src.connect(f);f.connect(gg);gg.connect(rainG);src.start()});rainG.connect(AC.destination)}catch(e){}}
-function rainSet(){if(rainG)rainG.gain.setTargetAtTime((S.snd&&S.mus&&S.rain&&!document.hidden)?.05*S.vm:0,AC.currentTime,1.5)}
-function pad(f:number,v:number){tone(f,10,'sine',v,600,3)}
-function nt(f:number,v:number){tone(f,3.5,'triangle',v,800,.4)}
-function music(){if(mt)return;rainInit();mt=setInterval(()=>{rainSet();if(!S.snd||!S.mus||document.hidden)return;const k=mi%16,v=.08*S.vm*Math.min(1,.2+mi/10),low=g&&state=='play'&&g.en<25;mi++;if(k%4==0)PAD[k/4].forEach(f=>pad(f,v*(low?.25:.45)));if(!low&&Math.random()<.2)nt(PN[(Math.random()*PN.length)|0],v*.5)},2000)}
+const PAD=[[220,329.6,392,523.2],[174.6,261.6,329.6,440],[261.6,392,493.9,659.2],[196,293.7,440,587.3]],PN=[523,587,659,784,880];let mi=0,mt:any;
+function pad(f:number,v:number){tone(f,10,'sine',v,1000,3)}
+function nt(f:number,v:number){tone(f,3.5,'triangle',v,1100,.4)}
+function music(){if(mt)return;mt=setInterval(()=>{if(!S.snd||!S.mus||document.hidden)return;const k=mi%16,v=.24*S.vm*Math.min(1,.2+mi/10),low=g&&state=='play'&&g.en<25;mi++;if(k%4==0)PAD[k/4].forEach(f=>pad(f,v*(low?.25:.45)));if(!low&&Math.random()<.2)nt(PN[(Math.random()*PN.length)|0],v*.5)},2000)}
 function share(){const t='Lantern Moth: '+g.sc+' points, x'+g.mx+' combo, '+(g.t|0)+'s. '+location.href;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied!'),()=>toast('Could not copy'))}
 function skin(i){if(!S.own.includes(i)){if(S.dust<COST[i]){toast('Not enough dust yet');return}S.dust-=COST[i];S.own.push(i);sfx(700,.3)}S.skin=i;save();renderMenu()}
 function play(daily){
@@ -95,7 +93,7 @@ function ach(k){if(S.ach.includes(k))return;S.ach.push(k);S.dust+=25;save();toas
 function burst(px,py,c,n){n=S.calm?Math.ceil(n/3):n;for(let i=0;i<n;i++){const a=R()*6.28,s=40+R()*140;g.p.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.6,c})}}
 function end(cause:string,by=''){
  state='over';g.cause=cause;navigator.vibrate&&navigator.vibrate(120);if(!S.calm)g.shake=.4;sfx(120,.5,'sawtooth',.1);
- const d0=Math.floor(g.sc/20)+g.got;let gd=0;goals().forEach(i=>{if(!S.dg.done.includes(i)&&GP[i][1](g)){S.dg.done.push(i);gd+=30}});const d=d0+gd;S.dust+=d;const nb=g.sc>(g.daily?S.dbest:S.best);
+ const d0=Math.floor(g.sc/25)+g.got;let gd=0;goals().forEach(i=>{if(!S.dg.done.includes(i)&&GP[i][1](g)){S.dg.done.push(i);gd+=30}});const d=d0+gd;S.dust+=d;const nb=g.sc>(g.daily?S.dbest:S.best);
  if(g.daily)S.dbest=Math.max(S.dbest,g.sc);else S.best=Math.max(S.best,g.sc);S.runs++;const nu:string[]=[];ST.forEach((t,i)=>{if(t[2](S)&&!S.seen.includes(i)){S.seen.push(i);nu.push(t[0])}});S.dust+=nu.length*10;save();
  const tips:any={'a bat':'Bats fly in waves: slip behind them. Grab a shield when you see one.','a thorn':'Thorns fall straight down: sidestep early, or dash through them.','a spider':'Spiders drop on threads and pull back up: wait for them to retreat.','a Shade':'Shades follow your light: dash through them or outlast them.'};
  const tip=cause=='hit'?(tips[by]||'Dodge early and keep your dash ready.'):'Your light drains faster over time: collect orbs early and keep your combo going.';
@@ -138,7 +136,7 @@ function update(dt){
  if(g.t>g.swarm){g.swarm+=20;toast('Firefly swarm!');sfx(660,.3,'triangle');const cx=W/2,cy=H/2;for(let i=0;i<8;i++){const a=i/8*6.28;g.o.push({x:cx+Math.cos(a)*Math.min(W,H)*.3,y:cy+Math.sin(a)*Math.min(W,H)*.3,l:9,ph:i})}}
  for(let i=g.o.length-1;i>=0;i--){const o=g.o[i];o.l-=dt*(G(0)?.8:1);const d=Math.hypot(m.x-o.x,m.y-o.y);
   if(g.mg>0&&d<260){o.x+=(m.x-o.x)*dt*5;o.y+=(m.y-o.y)*dt*5}
-  if(d<24+S.up[0]*5+(G(1)?8:0)){g.o.splice(i,1);g.en=Math.min(100,g.en+(R()<S.up[3]*.06?25:12));if(o.tr){g.tc++;if(g.tc>=10)ach('fly')}g.cb++;g.ct=2+S.up[4]*.3;g.m=Math.min(3,1+(g.cb/5|0));g.sc+=Math.round(10*g.m*(g.gold>0?2:1)*(S.skin==6?1.1:1));g.got++;g.mx=Math.max(g.mx,g.m);burst(o.x,o.y,'#ffe9a8',8);sfx(480+Math.min(g.cb,20)*25,.1,'sine')}
+  if(d<24+S.up[0]*5+(G(1)?8:0)){g.o.splice(i,1);g.en=Math.min(100,g.en+(R()<S.up[3]*.06?25:12));if(o.tr){g.tc++;if(g.tc>=10)ach('fly')}g.cb++;g.ct=2+S.up[4]*.3;g.m=Math.min(5,1+(g.cb/5|0));g.sc+=Math.round(10*g.m*(g.gold>0?2:1)*(S.skin==6?1.1:1));g.got++;g.mx=Math.max(g.mx,g.m);burst(o.x,o.y,'#ffe9a8',8);sfx(480+Math.min(g.cb,20)*25,.1,'sine')}
   else if(o.l<=0)g.o.splice(i,1)}
  for(let i=g.w.length-1;i>=0;i--){const w=g.w[i];w.l-=dt;if(Math.hypot(m.x-w.x,m.y-w.y)<26){g.w.splice(i,1);if(w.k==0)g.sh=1;else if(w.k==1)g.mg=10;else if(w.k==2)g.sl=7;else if(w.k==3){g.f.forEach(f=>{if(Math.hypot(f.x-m.x,f.y-m.y)<240){f.dead=1;burst(f.x,f.y,'#ffd36b',10)}});burst(m.x,m.y,'#ffd36b',24);if(!S.calm)g.fl=.12}else{g.hp=10+S.up[5]*3;g.hm={x:m.x,y:m.y};g.os=0;if(S.comp==2)g.sh=1}burst(w.x,w.y,'#fff',14);sfx(900,.25,'triangle');toast(['Shield!','Magnet!','Slow time!','Lantern burst!',CN[S.comp]+'!'][w.k])}else if(w.l<=0)g.w.splice(i,1)}
  for(let i=g.f.length-1;i>=0;i--){const f=g.f[i];
@@ -148,7 +146,7 @@ function update(dt){
  g.ct-=dt;if(g.ct<=0){g.cb=0;g.m=1}
  g.sh=g.sh?1:0;g.mg=Math.max(0,g.mg-dt);g.gold=Math.max(0,g.gold-dt);g.br=Math.max(0,g.br-dt);g.fl=Math.max(0,g.fl-dt);g.web=Math.max(0,g.web-dt);g.dash=Math.max(0,g.dash-dt);g.dc=Math.max(0,g.dc-dt);if(g.t>g.gh){g.gh+=45;g.gold=10+(G(4)?4:0);toast('Golden hour! Double score');sfx(784,.5,'triangle');ach('gh')}g.sl=Math.max(0,g.sl-dt);g.shake=Math.max(0,g.shake-dt);
  for(let i=g.p.length-1;i>=0;i--){const p=g.p[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt;if(p.l<=0)g.p.splice(i,1)}
- if(g.sc>=500)ach('s500');if(g.m>=3)ach('c5');if(g.got>=40)ach('o40');if(g.t>=60)ach('t60');
+ if(g.sc>=500)ach('s500');if(g.m>=5)ach('c5');if(g.got>=40)ach('o40');if(g.t>=60)ach('t60');
  $('sc').textContent=g.sc;$('cb').textContent=(g.m>1?'×'+g.m+' ':'')+(g.dc<=0?'dash ready':'');$('en').style.width=g.en+'%';const lo=g.en<25;$('en').style.background=lo?'#ff4466':'';$('en').style.opacity=lo&&!S.calm?String(.55+.45*Math.sin(T*10)):'1';if(lo){g.hb=(g.hb||0)-dt;if(g.hb<=0){g.hb=.9;sfx(60,.18,'sine',.12);setTimeout(()=>sfx(55,.18,'sine',.09),180)}}
 }
 /* draw */
@@ -218,14 +216,13 @@ menu();requestAnimationFrame(loop);
 
 function trl(i:number){if(!S.town.includes(i)){if(S.dust<TC[i]){toast('Not enough dust yet');return}S.dust-=TC[i];S.town.push(i);sfx(700,.3)}S.trail=i;save();renderMenu()}
 function cmp(i:number){if(!S.cown.includes(i)){if(S.dust<CC[i]){toast('Not enough dust yet');return}S.dust-=CC[i];S.cown.push(i);sfx(700,.3)}S.comp=i;save();renderMenu()}
-function vol(k:string,v:string,p?:number){S[k]=+v/100;save();rainSet();if(p)sfx(660,.1,'sine',.08)}
+function vol(k:string,v:string,p?:number){S[k]=+v/100;save();if(p)sfx(660,.1,'sine',.08)}
 function copyCode(){const c=btoa(unescape(encodeURIComponent(JSON.stringify(S)))),t=$('savebox') as HTMLTextAreaElement;t.value=c;t.select();(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Save code copied'),()=>toast('Copy the code from the box'))}
 function loadCode(){const t=$('savebox') as HTMLTextAreaElement;try{const d=JSON.parse(decodeURIComponent(escape(atob(t.value.trim()))));if(typeof d.best!='number')throw 0;if(!confirm('Replace this device\'s progress with the pasted save?'))return;S=Object.assign({},S,d);if(!S.dg||S.dg.d!=dk)S.dg={d:dk,done:[]};while(S.up.length<8)S.up.push(0);save();renderMenu();toast('Save loaded')}catch(e){toast('That code does not look right')}}
 function again(){play(g.daily)}
 function togJ(){J^=1;music();renderMenu()}
 function togDiff(){S.diff=(S.diff+1)%3;save();renderMenu()}
-function togSnd(){S.snd^=1;save();rainSet();renderMenu()}
-function togRain(){S.rain^=1;save();rainSet();renderMenu()}
-function togMus(){S.mus^=1;save();rainSet();renderMenu()}
+function togSnd(){S.snd^=1;save();renderMenu()}
+function togMus(){S.mus^=1;save();renderMenu()}
 function togCalm(){S.calm^=1;document.body.classList.toggle('calm',!!S.calm);save();renderMenu()}
-Object.assign(window,{togRain,copyCode,loadCode,tab,buyG,vol,cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
+Object.assign(window,{copyCode,loadCode,tab,buyG,vol,cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
