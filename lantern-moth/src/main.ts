@@ -50,13 +50,21 @@ function show(id){['menu','pause','over'].forEach(s=>$(s).classList.toggle('hide
 function menu(){state='menu';g=null;renderMenu();show('menu')}
 let J=0,JT=0;
 const TABS=['Skins','Upgrades','Garden','Settings','Stories'],GN=['Lantern post','Moonflowers','Glow mushrooms','Jar of fireflies','Willow tree','Stone fountain'],GC=[150,250,400,600,900,1300],GD=['Orbs fade 20% slower','Bigger orb pickup range','Light drains 8% slower','Orbs appear 10% sooner','Golden Hour lasts 4s longer','Start every run with a shield'];
+function gardenSVG(){const o=(i:number)=>G(i)?1:.18;return `<svg viewBox="0 0 300 90" style="width:100%;max-width:360px;background:#120a2c;border-radius:6px"><rect y="78" width="300" height="12" fill="#1c1230"/>
+<g opacity="${o(0)}"><rect x="28" y="38" width="3" height="40" fill="#5a3a20"/><circle cx="29.5" cy="34" r="14" fill="#ffb23d" opacity=".35"/><rect x="25" y="28" width="9" height="11" fill="#ffd58a"/></g>
+<g opacity="${o(1)}">${[0,1,2,3].map(i=>`<line x1="${58+i*9}" y1="78" x2="${58+i*9}" y2="${64-(i%2)*5}" stroke="#2c6a4a"/><circle cx="${58+i*9}" cy="${64-(i%2)*5}" r="4" fill="#ff9be6"/>`).join('')}</g>
+<g opacity="${o(2)}">${[0,1,2].map(i=>`<path d="M${100+i*13} 78 a6 6 0 0 1 12 0z" fill="#164a5a"/><circle cx="${106+i*13}" cy="72" r="7" fill="#6be7ff" opacity=".3"/>`).join('')}</g>
+<g opacity="${o(3)}"><rect x="150" y="58" width="16" height="20" fill="#b4dcff" opacity=".3"/>${[0,1,2].map(i=>`<circle cx="${154+i*4}" cy="${66+i*3}" r="2" fill="#ffe27a"/>`).join('')}</g>
+<g opacity="${o(5)}"><ellipse cx="205" cy="76" rx="20" ry="5" fill="#2a2448"/><path d="M205 60 Q195 58 190 76 M205 60 Q215 58 220 76" stroke="#8fb8ff" fill="none"/></g>
+<g opacity="${o(4)}"><rect x="262" y="26" width="6" height="52" fill="#1c1230"/>${[-3,-2,-1,0,1,2,3].map(i=>`<path d="M265 30 Q${265+i*10} 34 ${265+i*9} 70" stroke="#2c6a4a" fill="none"/>`).join('')}</g></svg>`}
 function jtab(){
  if(JT==0)return `<b class="lb">Moth skins (cost in dust)</b><div class="row">${SK.map((c,i)=>`<button class="${S.skin==i?'sel':''}" onclick="skin(${i})"><span style="color:${c}">&#9679;</span> ${SKN[i]}${S.own.includes(i)?'':' ('+COST[i]+')'}</button>`).join('')}</div><div class="how">${SKN[S.skin]}: ${SKP[S.skin]||'cosmetic only'}</div><b class="lb">Wing trails</b><div class="row">${TN.map((n,i)=>`<button class="${S.trail==i?'sel':''}" onclick="trl(${i})">${n}${S.town.includes(i)?'':' ('+TC[i]+')'}</button>`).join('')}</div><b class="lb">Companions (from Helper pickups)</b><div class="row">${CN.map((n,i)=>`<button class="${S.comp==i?'sel':''}" onclick="cmp(${i})">${n}${S.cown.includes(i)?'':' ('+CC[i]+')'}</button>`).join('')}</div><div class="how">${CN[S.comp]}: ${CDESC[S.comp]}</div>`;
  if(JT==1)return `<b class="lb">Upgrades (permanent, cost dust)</b><div class="row">${upBtns()}</div>`;
- if(JT==2)return `<b class="lb">Restore the garden</b><div class="how">Spend dust to bring the garden back to life. Restored things appear on the home screen and give small bonuses.</div>${GN.map((n,i)=>`<div class="row"><button class="${G(i)?'sel':''}" onclick="buyG(${i})">${n}${G(i)?' (restored)':' ('+GC[i]+')'}</button><span class="how">${GD[i]}</span></div>`).join('')}<div class="how">${S.gar.length}/${GN.length} restored</div>`;
+ if(JT==2)return `<b class="lb">Restore the garden</b>${gardenSVG()}<div class="how">Spend dust to bring the garden back to life. Restored things appear on the home screen and give small bonuses.</div>${GN.map((n,i)=>`<div class="row"><button class="${G(i)?'sel':''}" onclick="buyG(${i})">${n}${G(i)?' (restored)':' ('+GC[i]+')'}</button><span class="how">${GD[i]}</span></div>`).join('')}<div class="how">${S.gar.length}/${GN.length} restored</div>`;
  if(JT==3)return `<b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
  <label class="how">Effects volume <input type="range" min="0" max="100" value="${Math.round(S.vs*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vs',this.value)" onchange="vol('vs',this.value,1)"></label>
- <label class="how">Music volume <input type="range" min="0" max="100" value="${Math.round(S.vm*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vm',this.value)"></label>`;
+ <label class="how">Music volume <input type="range" min="0" max="100" value="${Math.round(S.vm*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vm',this.value)"></label>
+ <b class="lb">Move your progress</b><div class="how">Copy a save code here, then paste it on your other device and press Load.</div><textarea id="savebox" rows="2" style="width:100%;font-size:11px;background:#14102e;color:#f4efff;border:1px solid #4a3a6a;border-radius:6px" placeholder="Paste a save code here"></textarea><div class="row"><button onclick="copyCode()">Copy save code</button><button onclick="loadCode()">Load save code</button></div>`;
  return `<b class="lb">Moth stories (${ST.filter(t=>t[2](S)).length}/${ST.length})</b><div style="max-height:190px;overflow:auto;font-size:14px">${ST.map(t=>t[2](S)?'<p style="margin:0 0 8px"><b>'+t[0]+'</b><br>'+t[1]+'</p>':'<p style="margin:0 0 8px;opacity:.5">??? '+t[3]+'</p>').join('')}</div><b class="lb">Achievements</b><div>${Object.entries(AC_).map(([k,v])=>(S.ach.includes(k)?'[x] ':'[ ] ')+v).join('<br>')}</div>
  <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; Helper pickups summon your chosen companion. Orbs refill your light and build combos up to x5.</div>`}
 function renderMenu(){
@@ -64,18 +72,19 @@ function renderMenu(){
  <div class="row"><button class="b" onclick="play(0)">Play</button><button class="b2" onclick="play(1)">Tonight's lantern</button></div>
  <p class="how">Best ${S.best} &middot; Dust ${S.dust}<br><br>Today's goals:<br>${goals().map(i=>(S.dg.done.includes(i)?'[x] ':'[ ] ')+GP[i][0]).join('<br>')}</p>
  <button onclick="togJ()">${J?'Close journal':"Moth's journal"}</button>
- ${J?`<div class="card jr"><div class="row">${TABS.map((n,i)=>`<button class="${JT==i?'sel':''}" onclick="tab(${i})">${n}</button>`).join('')}</div>${jtab()}</div>`:''}`}
+ ${J?`<div class="card jr"><div class="row" style="flex-wrap:nowrap;gap:5px">${TABS.map((n,i)=>`<button class="${JT==i?'sel':''}" style="padding:6px 8px;font-size:12.5px" onclick="tab(${i})">${n}</button>`).join('')}</div>${jtab()}</div>`:''}`}
 function tab(i:number){JT=i;renderMenu()}
 function buyG(i:number){if(G(i))return;if(S.dust<GC[i]){toast('Not enough dust yet');return}S.dust-=GC[i];S.gar.push(i);save();sfx(700,.3);renderMenu()}
-const MEL=[440,587,698,659,587,0,440,0,466,587,659,698,659,587,466,440,440,587,698,659,587,659,698,0,698,659,587,466,440,0,293,0],BASS=[147,220];let mi=0,mt:any;
-function nt(f:number,d:number,v:number,ty:any='triangle'){tone(f,d,ty,v,1100,.02)}
-function music(){if(mt)return;mt=setInterval(()=>{if(!S.snd||!S.mus||document.hidden)return;const i=mi%MEL.length,v=.07*S.vm*Math.min(1,.2+mi/24);mi++;if(MEL[i])nt(MEL[i],.3,v);if(i%4==0)nt(BASS[(i/4)&1],.28,v*.9,'sine');if(i%4==2)tone(520,.05,'sine',v*.5,900,.003)},230)}
+const PAD=[[220,261.6,329.6],[174.6,220,261.6],[146.8,220,293.7],[164.8,196,246.9]],MEL=[659,0,587,0,523,0,0,440,523,0,440,0,494,0,392,0];let mi=0,mt:any;
+function pad(f:number,v:number){tone(f,4.8,'sine',v,800,1.4)}
+function nt(f:number,v:number){tone(f,2.4,'triangle',v,900,.09);setTimeout(()=>tone(f,1.8,'triangle',v*.3,700,.09),600)}
+function music(){if(mt)return;mt=setInterval(()=>{if(!S.snd||!S.mus||document.hidden)return;const b=mi%16,v=.08*S.vm*Math.min(1,.2+mi/16),low=g&&state=='play'&&g.en<25;mi++;if(b%4==0){const c=PAD[b/4];c.forEach(f=>pad(f,v*(low?.3:.5)));if(g&&g.gold>0)pad(c[0]*2,v*.3)}if(MEL[b]&&!low)nt(MEL[b],v)},1110)}
 function share(){const t='Lantern Moth: '+g.sc+' points, x'+g.mx+' combo, '+(g.t|0)+'s. '+location.href;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied!'),()=>toast('Could not copy'))}
 function skin(i){if(!S.own.includes(i)){if(S.dust<COST[i]){toast('Not enough dust yet');return}S.dust-=COST[i];S.own.push(i);sfx(700,.3)}S.skin=i;save();renderMenu()}
 function play(daily){
  R=daily?mb([...new Date().toISOString().slice(0,10)].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)):Math.random;
  g={daily,t:0,sc:0,en:100,cb:0,ct:0,m:1,o:[],f:[],w:[],p:[],me:{x:W/2,y:H*.6},sh:S.skin==5||G(5)?1:0,hp:0,hm:{x:0,y:0},bu:[],mg:0,sl:0,so:0,sf:2,sw:12,got:0,mx:0,shake:0,cause:'',swarm:20,gh:45,bs:60,br:0,wt:45,wx:null,fl:0,sd:0,wn:0,tc:0,web:0,wb:[],bk:0,boss:null,gold:0,dash:0,dc:0};
- state='play';show(null);sfx(440,.2);music();
+ state='play';show(null);sfx(440,.2);music();if(S.gar.length)toast('Garden bonuses active ('+S.gar.length+')');
 }
 function dash(){if(state!='play'||g.dc>0)return;g.dash=S.skin==4?.35:.25;g.dc=4-S.up[2]*.6;burst(g.me.x,g.me.y,SK[S.skin],12);sfx(200,.15,'triangle')}
 function toggle(){if(state=='play'){state='pause';show('pause')}else if(state=='pause'){state='play';show(null)}}
@@ -120,7 +129,7 @@ function update(dt){
  else{const a=T*(c==2?2:3.5),r=c==2?34:42;h.x=m.x+Math.cos(a)*r;h.y=m.y+Math.sin(a)*r;
   if(c==2){g.os=(g.os||0)-dt;if(g.os<=0){let tf:any=null,td=260+S.up[7]*30;g.f.forEach(f=>{const d=Math.hypot(f.x-h.x,f.y-h.y);if(d<td){td=d;tf=f}});if(tf){const dx=tf.x-h.x,dy=tf.y-h.y,dd=Math.hypot(dx,dy)||1;g.bu.push({x:h.x,y:h.y,vx:dx/dd*520,vy:dy/dd*520,l:.9});g.os=.7-S.up[7]*.06;sfx(900,.05,'square',.03)}else g.os=.15}}
   else g.f.forEach(f=>{if(f.t==1&&Math.hypot(f.x-m.x,f.y-m.y)<55+S.up[7]*8){f.dead=1;burst(f.x,f.y,'#6fd0a0',6)}})}}
- for(let i=g.bu.length-1;i>=0;i--){const bl=g.bu[i];bl.x+=bl.vx*dt;bl.y+=bl.vy*dt;bl.l-=dt;let hit=false;for(const f of g.f){if(!f.dead&&Math.hypot(f.x-bl.x,f.y-bl.y)<f.r+5){f.hp=(f.hp||(f.t==3?3:1))-1;if(f.hp<=0){f.dead=1;g.sc+=20}burst(f.x,f.y,'#ffe9a8',5);hit=true;break}}if(hit||bl.l<=0)g.bu.splice(i,1)}
+ for(let i=g.bu.length-1;i>=0;i--){const bl=g.bu[i];bl.x+=bl.vx*dt;bl.y+=bl.vy*dt;bl.l-=dt;let hit=false;for(const f of g.f){if(!f.dead&&Math.hypot(f.x-bl.x,f.y-bl.y)<f.r+5){f.hp=(f.hp||(f.t==3?3:1))-1;if(f.hp<=0){f.dead=1;g.sc+=10}burst(f.x,f.y,'#ffe9a8',5);hit=true;break}}if(hit||bl.l<=0)g.bu.splice(i,1)}
  g.sd-=dt;if(g.sd<=0&&g.t>40&&!g.boss&&!g.f.some(f=>f.t==3)){g.f.push({t:3,x:R()<.5?20:W-20,y:H*.3,vx:0,vy:0,r:11,l:0});g.sd=25+R()*10;toast('A Shade follows your light')}
  g.sw-=dt;if(g.sw<=0){g.w.push({x:40+R()*(W-80),y:90+R()*(H-150),k:(R()*5)|0,l:9});g.sw=11}
  if(g.t>g.swarm){g.swarm+=20;toast('Firefly swarm!');sfx(660,.3,'triangle');const cx=W/2,cy=H/2;for(let i=0;i<8;i++){const a=i/8*6.28;g.o.push({x:cx+Math.cos(a)*Math.min(W,H)*.3,y:cy+Math.sin(a)*Math.min(W,H)*.3,l:9,ph:i})}}
@@ -140,7 +149,7 @@ function update(dt){
  $('sc').textContent=g.sc;$('cb').textContent=(g.m>1?'×'+g.m+' ':'')+(g.dc<=0?'dash ready':'');$('en').style.width=g.en+'%';const lo=g.en<25;$('en').style.background=lo?'#ff4466':'';$('en').style.opacity=lo&&!S.calm?String(.55+.45*Math.sin(T*10)):'1';if(lo){g.hb=(g.hb||0)-dt;if(g.hb<=0){g.hb=.9;sfx(60,.18,'sine',.12);setTimeout(()=>sfx(55,.18,'sine',.09),180)}}
 }
 /* draw */
-function glow(px,py,r,c,a=1){const q=x.createRadialGradient(px,py,0,px,py,r);q.addColorStop(0,c);q.addColorStop(1,'rgba(0,0,0,0)');x.globalAlpha=a;x.fillStyle=q;x.beginPath();x.arc(px,py,r,0,6.3);x.fill();x.globalAlpha=1}
+function glow(px,py,r,c,a=1){const q=x.createRadialGradient(px,py,0,px,py,r);q.addColorStop(0,c);q.addColorStop(1,'rgba(0,0,0,0)');const pa=x.globalAlpha;x.globalAlpha=pa*a;x.fillStyle=q;x.beginPath();x.arc(px,py,r,0,6.3);x.fill();x.globalAlpha=pa}
 function drawGarden(){const b=H-52,X=(f:number)=>W*f,L=(px:number,py:number,r:number,c:string,a:number)=>{x.globalCompositeOperation='lighter';glow(px,py,r,c,a);x.globalCompositeOperation='source-over'};
  if(G(0)){const px=X(.52);x.fillStyle='#2a1c10';x.fillRect(px-2,b-60,4,60);L(px,b-66,50,'#ffb23d',.5);x.fillStyle='#ffd58a';x.fillRect(px-7,b-76,14,16)}
  if(G(1)){for(let i=0;i<5;i++){const px=X(.6)+i*14,h=14+(i%3)*6;x.strokeStyle='#2c6a4a';x.lineWidth=2;x.beginPath();x.moveTo(px,b);x.lineTo(px,b-h);x.stroke();L(px,b-h,12,'#ff9be6',.8)}}
@@ -155,6 +164,7 @@ function draw(){
  x.fillStyle='#fff';stars.forEach(s=>{x.globalAlpha=.35+.35*Math.sin(T*2+s.x);x.fillRect(s.x%W,(s.y+T*s.z*6)%H,s.z,s.z)});x.globalAlpha=1;
  if(g&&g.gold>0){x.fillStyle='rgba(255,170,60,.14)';x.fillRect(0,0,W,H)}glow(W*.8,H*.18,90,'#cdb8ff',.5);
  x.fillStyle='#150b33';x.beginPath();x.moveTo(0,H);for(let i=0;i<=W;i+=20)x.lineTo(i,H-40-Math.sin(i*.01)*22-Math.sin(i*.027)*10);x.lineTo(W,H);x.fill();
+ if(g){x.globalAlpha=.5;drawGarden();x.globalAlpha=1}
  if(!g){const lx=W*.74,ly=H*.42;x.strokeStyle='#3a2a1c';x.lineWidth=3;x.beginPath();x.moveTo(lx,0);x.lineTo(lx,ly-48);x.stroke();
  x.globalCompositeOperation='lighter';glow(lx,ly,170+Math.sin(T*7)*8,'#ffb23d',.55);x.globalCompositeOperation='source-over';
  x.fillStyle='#2a1c10';x.fillRect(lx-26,ly-48,52,8);x.fillRect(lx-26,ly+40,52,8);
@@ -206,10 +216,12 @@ menu();requestAnimationFrame(loop);
 function trl(i:number){if(!S.town.includes(i)){if(S.dust<TC[i]){toast('Not enough dust yet');return}S.dust-=TC[i];S.town.push(i);sfx(700,.3)}S.trail=i;save();renderMenu()}
 function cmp(i:number){if(!S.cown.includes(i)){if(S.dust<CC[i]){toast('Not enough dust yet');return}S.dust-=CC[i];S.cown.push(i);sfx(700,.3)}S.comp=i;save();renderMenu()}
 function vol(k:string,v:string,p?:number){S[k]=+v/100;save();if(p)sfx(660,.1,'sine',.08)}
+function copyCode(){const c=btoa(unescape(encodeURIComponent(JSON.stringify(S)))),t=$('savebox') as HTMLTextAreaElement;t.value=c;t.select();(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Save code copied'),()=>toast('Copy the code from the box'))}
+function loadCode(){const t=$('savebox') as HTMLTextAreaElement;try{const d=JSON.parse(decodeURIComponent(escape(atob(t.value.trim()))));if(typeof d.best!='number')throw 0;if(!confirm('Replace this device\'s progress with the pasted save?'))return;S=Object.assign({},S,d);if(!S.dg||S.dg.d!=dk)S.dg={d:dk,done:[]};while(S.up.length<8)S.up.push(0);save();renderMenu();toast('Save loaded')}catch(e){toast('That code does not look right')}}
 function again(){play(g.daily)}
 function togJ(){J^=1;music();renderMenu()}
 function togDiff(){S.diff=(S.diff+1)%3;save();renderMenu()}
 function togSnd(){S.snd^=1;save();renderMenu()}
 function togMus(){S.mus^=1;save();renderMenu()}
 function togCalm(){S.calm^=1;document.body.classList.toggle('calm',!!S.calm);save();renderMenu()}
-Object.assign(window,{tab,buyG,vol,cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
+Object.assign(window,{copyCode,loadCode,tab,buyG,vol,cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
