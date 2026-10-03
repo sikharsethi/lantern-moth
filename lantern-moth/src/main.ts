@@ -2,7 +2,7 @@ import './style.css'
 
 const $=(i:string)=>document.getElementById(i)!,cv=$('c') as HTMLCanvasElement,x=cv.getContext('2d')!;
 let S:any={};try{S=JSON.parse(localStorage.getItem('moth')||'{}')}catch(e){}
-S=Object.assign({runs:0,seen:[],comp:0,cown:[0],trail:0,town:[0],up:[0,0,0,0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
+S=Object.assign({vs:.7,vm:.6,runs:0,seen:[],comp:0,cown:[0],trail:0,town:[0],up:[0,0,0,0,0,0,0,0],mus:1,best:0,dust:0,own:[0],skin:0,ach:[],snd:1,calm:matchMedia('(prefers-reduced-motion:reduce)').matches?1:0,diff:1,dbest:0},S);
 while(S.up.length<8)S.up.push(0);
 const save=()=>{try{localStorage.setItem('moth',JSON.stringify(S))}catch(e){}};
 const dk=new Date().toISOString().slice(0,10);if(!S.dg||S.dg.d!=dk)S.dg={d:dk,done:[]};
@@ -24,10 +24,11 @@ const ST:[string,string,(s:any)=>boolean,string][]=[
 const UN=['Wider glow','Slow burn','Quick wings','Lucky orbs','Combo keeper','Helper time','Helper speed','Helper skill'],upc=(i:number)=>(i>4?100:i>2?80:40)*(S.up[i]+1);
 function upBtns(){return UN.map((n,i)=>`<button onclick="up(${i})">${n} ${S.up[i]}/3${S.up[i]<3?' ('+upc(i)+')':''}</button>`).join('')}
 function up(i){const c=upc(i);if(S.up[i]>=3)return;if(S.dust<c){toast('Not enough dust');return}S.dust-=c;S.up[i]++;save();sfx(700,.3);renderMenu();if(state=='over')$('ub').innerHTML=upBtns()}
-const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b','#ff7a3d','#b48cff','#ffe27a'],SKN=['Amber','Frost','Rose','Moss','Ember','Violet','Gold'],COST=[0,60,150,250,350,500,800],SKP=['','','','','Longer dash','Start each run with a shield','+10% score'],TN=['Plain','Sparks','Rainbow'],TC=[0,120,300],CN=['Helper moth','Firefly','Owl','Beetle'],CC=[0,400,700,1000],CDESC=['Fetches orbs for you','Drops orbs for you to chase','Gives you a shield and renews it','Blocks nearby thorns'],DN=['Calm','Normal','Fierce'];
+const SK=['#ffd36b','#6be7ff','#ff7ad9','#8dff9b','#ff7a3d','#b48cff','#ffe27a'],SKN=['Amber','Frost','Rose','Moss','Ember','Violet','Gold'],COST=[0,60,150,250,350,500,800],SKP=['','','','','Longer dash','Start each run with a shield','+10% score'],TN=['Plain','Sparks','Rainbow'],TC=[0,120,300],CN=['Helper moth','Firefly','Owl','Beetle'],CC=[0,400,700,1000],CDESC=['Fetches orbs for you','Drops orbs for you to chase','Shields you, then shoots nearby enemies','Blocks nearby thorns'],DN=['Calm','Normal','Fierce'];
 const AC_={s500:'Glow 500',gh:'Golden hour',boss:'Survive the Great Gray Moth',storm:'Weather a rainstorm',shade:'Shake off a Shade',fly:'Follow the fireflies',weaver:'Survive the Weaver',c5:'Combo ×5',o40:'40 orbs in a run',t60:'Survive 60s'};
 let AC:any,W=0,H=0,DPR=1,T=0,state='menu',g:any=null,R:()=>number=Math.random;
-function sfx(f,d=.12,t:any='sine',v=.07){if(!S.snd)return;try{AC=AC||new(window.AudioContext||(window as any).webkitAudioContext)();const o=AC.createOscillator(),n=AC.createGain();o.type=t;o.frequency.value=f;n.gain.setValueAtTime(v,AC.currentTime);n.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(n);n.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function tone(f:number,d:number,t:any,v:number){if(v<=.0005)return;try{AC=AC||new((window as any).AudioContext||(window as any).webkitAudioContext)();if(AC.state=='suspended')AC.resume();const o=AC.createOscillator(),n=AC.createGain();o.type=t;o.frequency.value=f;n.gain.setValueAtTime(v,AC.currentTime);n.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(n);n.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function sfx(f:number,d=.12,t:any='sine',v=.07){if(S.snd)tone(f,d,t,v*2*S.vs)}
 function mb(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let th:any;function toast(m:string){const t=$('toast');t.textContent=m;t.style.opacity='1';clearTimeout(th);th=setTimeout(()=>t.style.opacity='0',1800)}
 const drops=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),s:.6+Math.random()}));
@@ -54,15 +55,19 @@ function renderMenu(){
  <button onclick="togJ()">${J?'Close journal':"Moth's journal"}</button>
  ${J?`<div class="card jr"><b class="lb">Moth skins (cost in dust)</b><div class="row">${SK.map((c,i)=>`<button class="${S.skin==i?'sel':''}" onclick="skin(${i})"><span style="color:${c}">&#9679;</span> ${SKN[i]}${S.own.includes(i)?'':' ('+COST[i]+')'}</button>`).join('')}</div>
  <div class="how">${SKN[S.skin]}: ${SKP[S.skin]||'cosmetic only'}</div><b class="lb">Wing trails</b><div class="row">${TN.map((n,i)=>`<button class="${S.trail==i?'sel':''}" onclick="trl(${i})">${n}${S.town.includes(i)?'':' ('+TC[i]+')'}</button>`).join('')}</div><b class="lb">Companions (from Helper pickups)</b><div class="row">${CN.map((n,i)=>`<button class="${S.comp==i?'sel':''}" onclick="cmp(${i})">${n}${S.cown.includes(i)?'':' ('+CC[i]+')'}</button>`).join('')}</div><div class="how">${CN[S.comp]}: ${CDESC[S.comp]}</div><b class="lb">Settings</b><div class="row"><button onclick="togDiff()">Mode: ${DN[S.diff]}</button><button onclick="togSnd()">Sound: ${S.snd?'on':'off'}</button><button onclick="togMus()">Music: ${S.mus?'on':'off'}</button><button onclick="togCalm()">Calm motion: ${S.calm?'on':'off'}</button></div>
+ <label class="how">Effects volume <input type="range" min="0" max="100" value="${Math.round(S.vs*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vs',this.value)" onchange="vol('vs',this.value,1)"></label>
+ <label class="how">Music volume <input type="range" min="0" max="100" value="${Math.round(S.vm*100)}" style="accent-color:#ffd36b;vertical-align:middle" oninput="vol('vm',this.value)"></label>
  <b class="lb">Upgrades (permanent, cost dust)</b><div class="row">${upBtns()}</div><b class="lb">Moth stories (${ST.filter(t=>t[2](S)).length}/${ST.length})</b><div style="max-height:190px;overflow:auto;font-size:14px">${ST.map(t=>t[2](S)?'<p style="margin:0 0 8px"><b>'+t[0]+'</b><br>'+t[1]+'</p>':'<p style="margin:0 0 8px;opacity:.5">??? '+t[3]+'</p>').join('')}</div><b class="lb">Achievements</b><div>${Object.entries(AC_).map(([k,v])=>(S.ach.includes(k)?'[x] ':'[ ] ')+v).join('<br>')}</div>
  <div class="how">Move: drag, mouse, WASD or arrows. P pauses. Space or double-tap dashes through danger. Spiders drop on threads; golden hour doubles score. Storms drain your light faster but bring extra orbs. Shades hunt your light: dash through them or outlast them. Fireflies leave a trail of orbs. The Weaver's webs slow you: dash to cut through. Lantern burst clears nearby enemies; Helper pickups summon your chosen companion. Orbs refill your light and build combos up to x5. Shield, magnet and slow-time glyphs help you survive.</div></div>`:''}`}
-const CH=[[220,261.6,329.6],[174.6,220,261.6],[196,261.6,329.6],[196,246.9,293.7]];let ci=0,mt;
-function music(){if(mt)return;const tick=()=>{if(S.mus)CH[ci++%4].forEach(f=>sfx(f,4.5,'sine',.025))};tick();mt=setInterval(tick,4000)}
+const MEL=[659,0,784,880,784,0,659,587,523,0,587,659,587,0,0,0,659,0,784,880,1047,0,880,784,659,0,587,523,587,0,0,0],BASS=[131,196,220,196];let mi=0,mt:any;
+function box(f:number,v:number){tone(f,1.1,'sine',v);tone(f*3,.3,'sine',v*.22)}
+function chirp(){const v=.012*S.vm;[0,.07,.14].forEach(d=>setTimeout(()=>tone(4300,.04,'sine',v),d*1000))}
+function music(){if(mt)return;mt=setInterval(()=>{if(!S.snd||!S.mus||document.hidden)return;const i=mi++%MEL.length,v=.07*S.vm;if(MEL[i])box(MEL[i],v);if(i%8==0)tone(BASS[(i/8)|0],1.6,'sine',v*.7);if(Math.random()<.1)chirp()},520)}
 function share(){const t='Lantern Moth: '+g.sc+' points, x'+g.mx+' combo, '+(g.t|0)+'s. '+location.href;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied!'),()=>toast('Could not copy'))}
 function skin(i){if(!S.own.includes(i)){if(S.dust<COST[i]){toast('Not enough dust yet');return}S.dust-=COST[i];S.own.push(i);sfx(700,.3)}S.skin=i;save();renderMenu()}
 function play(daily){
  R=daily?mb([...new Date().toISOString().slice(0,10)].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)):Math.random;
- g={daily,t:0,sc:0,en:100,cb:0,ct:0,m:1,o:[],f:[],w:[],p:[],me:{x:W/2,y:H*.6},sh:S.skin==5?1:0,hp:0,hm:{x:0,y:0},mg:0,sl:0,so:0,sf:2,sw:12,got:0,mx:0,shake:0,cause:'',swarm:20,gh:45,bs:60,br:0,wt:45,wx:null,fl:0,sd:0,wn:0,tc:0,web:0,wb:[],bk:0,boss:null,gold:0,dash:0,dc:0};
+ g={daily,t:0,sc:0,en:100,cb:0,ct:0,m:1,o:[],f:[],w:[],p:[],me:{x:W/2,y:H*.6},sh:S.skin==5?1:0,hp:0,hm:{x:0,y:0},bu:[],mg:0,sl:0,so:0,sf:2,sw:12,got:0,mx:0,shake:0,cause:'',swarm:20,gh:45,bs:60,br:0,wt:45,wx:null,fl:0,sd:0,wn:0,tc:0,web:0,wb:[],bk:0,boss:null,gold:0,dash:0,dc:0};
  state='play';show(null);sfx(440,.2);music();
 }
 function dash(){if(state!='play'||g.dc>0)return;g.dash=S.skin==4?.35:.25;g.dc=4-S.up[2]*.6;burst(g.me.x,g.me.y,SK[S.skin],12);sfx(200,.15,'triangle')}
@@ -102,12 +107,13 @@ function update(dt){
   if(w.l<=0){if(w.k=='rain')ach('storm');g.wx=null;g.wt=35+R()*20;toast('The weather clears')}}}
  else if(!g.boss&&g.br<=0&&g.gold<=0){g.wt-=dt;if(g.wt<=0){g.wn++;const fly=g.wn%3==0;g.wx=fly?{k:'fly',l:8,warn:0}:{k:'rain',l:10,warn:2};toast(fly?'Fireflies drift through the garden':'Storm clouds rolling in...');if(fly)trail();else sfx(180,.6,'sawtooth',.03)}}
  for(let i=g.wb.length-1;i>=0;i--){const q=g.wb[i];q.l+=dt;if(q.l>4){g.wb.splice(i,1);continue}if(q.l>1&&g.dash<=0&&segd(m.x,m.y,q.x1,q.y1,q.x2,q.y2)<14){if(g.web<=0)sfx(150,.2,'square',.05);g.web=1.5}}
- if(g.hp>0){g.hp-=dt;const h=g.hm,c=S.comp;
+ if(g.hp>0){g.hp-=dt;const h=g.hm,c=S.comp;if(g.hp<=0){burst(h.x,h.y,['#9fffd0','#ffe27a','#c9a27a','#6fd0a0'][c],14);sfx(300,.2,'triangle')}
  if(c==0){let bo:any=null,bd=1e9;g.o.forEach(o=>{const d=Math.hypot(o.x-h.x,o.y-h.y);if(d<bd){bd=d;bo=o}});const tx=bo?bo.x:m.x+30,ty=bo?bo.y:m.y-30,dd=Math.hypot(tx-h.x,ty-h.y)||1,hs=220*(1+S.up[6]*.2);h.x+=(tx-h.x)/dd*hs*dt;h.y+=(ty-h.y)/dd*hs*dt;if(bo&&bd<14+S.up[7]*8){g.o.splice(g.o.indexOf(bo),1);g.en=Math.min(100,g.en+12);g.sc+=10;g.got++;burst(h.x,h.y,'#9fffd0',6);sfx(560,.08)}}
  else if(c==1){const tx=W/2+Math.sin(T*.8)*W*.35,ty=H*.5+Math.cos(T*1.1)*H*.25,dd=Math.hypot(tx-h.x,ty-h.y)||1,hs=160*(1+S.up[6]*.2);h.x+=(tx-h.x)/dd*hs*dt;h.y+=(ty-h.y)/dd*hs*dt;g.hd=(g.hd||0)-dt;if(g.hd<=0){g.hd=1.1-S.up[7]*.1;g.o.push({x:h.x,y:h.y,l:9,ph:0})}}
  else{const a=T*(c==2?2:3.5),r=c==2?34:42;h.x=m.x+Math.cos(a)*r;h.y=m.y+Math.sin(a)*r;
-  if(c==2){g.os=(g.os||0)+dt;if(!g.sh&&g.os>5-S.up[7]*.5){g.sh=1;g.os=0;burst(m.x,m.y,'#c9a27a',10);sfx(420,.15,'triangle')}}
+  if(c==2){g.os=(g.os||0)-dt;if(g.os<=0){let tf:any=null,td=260+S.up[7]*30;g.f.forEach(f=>{const d=Math.hypot(f.x-h.x,f.y-h.y);if(d<td){td=d;tf=f}});if(tf){const dx=tf.x-h.x,dy=tf.y-h.y,dd=Math.hypot(dx,dy)||1;g.bu.push({x:h.x,y:h.y,vx:dx/dd*520,vy:dy/dd*520,l:.9});g.os=.7-S.up[7]*.06;sfx(900,.05,'square',.03)}else g.os=.15}}
   else g.f.forEach(f=>{if(f.t==1&&Math.hypot(f.x-m.x,f.y-m.y)<55+S.up[7]*8){f.dead=1;burst(f.x,f.y,'#6fd0a0',6)}})}}
+ for(let i=g.bu.length-1;i>=0;i--){const bl=g.bu[i];bl.x+=bl.vx*dt;bl.y+=bl.vy*dt;bl.l-=dt;let hit=false;for(const f of g.f){if(!f.dead&&Math.hypot(f.x-bl.x,f.y-bl.y)<f.r+5){f.hp=(f.hp||(f.t==3?3:1))-1;if(f.hp<=0){f.dead=1;g.sc+=20}burst(f.x,f.y,'#ffe9a8',5);hit=true;break}}if(hit||bl.l<=0)g.bu.splice(i,1)}
  g.sd-=dt;if(g.sd<=0&&g.t>40&&!g.boss&&!g.f.some(f=>f.t==3)){g.f.push({t:3,x:R()<.5?20:W-20,y:H*.3,vx:0,vy:0,r:11,l:0});g.sd=25+R()*10;toast('A Shade follows your light')}
  g.sw-=dt;if(g.sw<=0){g.w.push({x:40+R()*(W-80),y:90+R()*(H-150),k:(R()*5)|0,l:9});g.sw=11}
  if(g.t>g.swarm){g.swarm+=20;toast('Firefly swarm!');sfx(660,.3,'triangle');const cx=W/2,cy=H/2;for(let i=0;i<8;i++){const a=i/8*6.28;g.o.push({x:cx+Math.cos(a)*Math.min(W,H)*.3,y:cy+Math.sin(a)*Math.min(W,H)*.3,l:9,ph:i})}}
@@ -156,10 +162,11 @@ function draw(){
  g.wb.forEach(q=>{const a=q.l<1;x.strokeStyle=a?'rgba(255,255,255,'+(.2+.2*Math.sin(T*20))+')':'rgba(230,220,255,.9)';x.lineWidth=a?1:3;x.beginPath();x.moveTo(q.x1,q.y1);x.lineTo(q.x2,q.y2);x.stroke()});
  if(g.boss&&g.boss.k=='s'){x.save();x.translate(g.boss.x,70);x.strokeStyle='#5a3a8a';x.lineWidth=4;for(let i=-1;i<2;i+=2)for(let j=0;j<4;j++){x.beginPath();x.moveTo(0,0);x.lineTo(i*(26+j*6),-10+j*14+Math.sin(T*5+j)*4);x.stroke()}x.fillStyle='#2a1650';x.beginPath();x.arc(0,0,20,0,6.3);x.fill();x.fillStyle='#ff4466';x.fillRect(-8,-4,5,5);x.fillRect(3,-4,5,5);x.restore()}
  else if(g.boss){x.save();x.translate(g.boss.x,70);x.fillStyle='#3b3552';[-1,1].forEach(q=>{x.save();x.scale(q,1);x.beginPath();x.ellipse(34,0,38,20+Math.sin(T*8)*8,.2,0,6.3);x.fill();x.fillStyle='#ffd36b';x.beginPath();x.arc(40,2,6,0,6.3);x.fill();x.restore()});x.beginPath();x.ellipse(0,4,9,22,0,0,6.3);x.fill();x.restore()}
+ g.bu.forEach(b=>glow(b.x,b.y,8,'#ffe9a8',.9));
  if(g.hp>0){const h=g.hm,col=['#9fffd0','#ffe27a','#c9a27a','#6fd0a0'][S.comp];glow(h.x,h.y,22,col,.7);x.fillStyle=col;
  if(S.comp==0)[-1,1].forEach(q=>{x.save();x.translate(h.x,h.y);x.scale(q,1);x.beginPath();x.ellipse(5,-1,6,3+Math.sin(T*26)*2,.4,0,6.3);x.fill();x.restore()});
  else if(S.comp==1){x.beginPath();x.arc(h.x,h.y,4,0,6.3);x.fill()}
- else if(S.comp==2){x.beginPath();x.arc(h.x,h.y,7,0,6.3);x.fill();x.fillStyle='#2a1c10';x.fillRect(h.x-4,h.y-2,2,3);x.fillRect(h.x+2,h.y-2,2,3)}
+ else if(S.comp==2){[-1,1].forEach(q=>{x.save();x.translate(h.x,h.y);x.scale(q,1);x.beginPath();x.ellipse(10,-1,9,3+Math.sin(T*18)*2.5,.3,0,6.3);x.fill();x.restore()});x.beginPath();x.arc(h.x,h.y,7,0,6.3);x.fill();x.fillStyle='#2a1c10';x.fillRect(h.x-4,h.y-2,2,3);x.fillRect(h.x+2,h.y-2,2,3)}
  else{x.beginPath();x.ellipse(h.x,h.y,9,6,0,0,6.3);x.fill();x.strokeStyle='#14302a';x.lineWidth=1.5;x.beginPath();x.moveTo(h.x-9,h.y);x.lineTo(h.x+9,h.y);x.stroke()}}
  const m=g.me,c=SK[S.skin],fl=Math.sin(T*22);
  x.globalCompositeOperation='lighter';glow(m.x,m.y,50+g.en*.5,c,.6);x.globalCompositeOperation='source-over';
@@ -183,10 +190,11 @@ menu();requestAnimationFrame(loop);
 
 function trl(i:number){if(!S.town.includes(i)){if(S.dust<TC[i]){toast('Not enough dust yet');return}S.dust-=TC[i];S.town.push(i);sfx(700,.3)}S.trail=i;save();renderMenu()}
 function cmp(i:number){if(!S.cown.includes(i)){if(S.dust<CC[i]){toast('Not enough dust yet');return}S.dust-=CC[i];S.cown.push(i);sfx(700,.3)}S.comp=i;save();renderMenu()}
+function vol(k:string,v:string,p?:number){S[k]=+v/100;save();if(p)sfx(660,.1,'sine',.08)}
 function again(){play(g.daily)}
 function togJ(){J^=1;music();renderMenu()}
 function togDiff(){S.diff=(S.diff+1)%3;save();renderMenu()}
 function togSnd(){S.snd^=1;save();renderMenu()}
 function togMus(){S.mus^=1;save();renderMenu()}
 function togCalm(){S.calm^=1;document.body.classList.toggle('calm',!!S.calm);save();renderMenu()}
-Object.assign(window,{cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
+Object.assign(window,{vol,cmp,trl,play,toggle,menu,skin,up,share,again,togJ,togDiff,togSnd,togMus,togCalm})
